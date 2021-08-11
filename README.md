@@ -5,8 +5,8 @@
 ## Latest Image Digest
 
 <!-- /DIGEST_START_MARKER/ -->
-```bloxstaking/key-vault:v1.1.1,bloxstaking/key-vault:latest```
-```sha256:5aaa69f81f0b25a327bdaa2a4d628460f829d05068f592278584e59f5a475d10```
+```bloxstaking/key-vault-rc:v1.2.1,bloxstaking/key-vault-rc:latest```
+```sha256:070a362fe641018bf695e24a2f660fc0cf7f779677303c9bc526ed031a26ed9a```
 <!-- /DIGEST_END_MARKER/ -->
 
 ## How to use this project?
