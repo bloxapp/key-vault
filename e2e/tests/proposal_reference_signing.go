@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/attestantio/go-eth2-client/spec"
@@ -53,6 +54,7 @@ func (test *ProposalReferenceSigning) Run(t *testing.T) {
 	req, err := test.serializedReq(pubKeyBytes, nil, domain, blk)
 	require.NoError(t, err)
 	sig, err := setup.Sign("sign", req, core.PraterNetwork)
+	fmt.Println(hex.EncodeToString(sig))
 	require.NoError(t, err)
 
 	expectedSig := _byteArray("83ed05e039d39971dab6bd224809df2f646425526f6bdbc0b0ac3f76ab73585397f2bd85b77f34503a6bc404f9a651cc0b4711e4d1a8596e3195e8c64df1f30caf3be1067251333221888dd1569147ce3ddd77787feb99c43d9e25cd64bd755b")
