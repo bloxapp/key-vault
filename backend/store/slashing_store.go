@@ -54,7 +54,7 @@ func (store *HashicorpVaultStore) RetrieveHighestAttestation(pubKey []byte) (*ph
 
 	ret := &phase0.AttestationData{}
 	if err := store.encoder.Decode(entry.Value, ret); err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal attestation (size %d)", len(entry.Value))
+		return nil, errors.Wrapf(err, "failed to unmarshal attestation (size %d) - (hex: %s)", len(entry.Value), hex.EncodeToString(entry.Value))
 	}
 
 	return ret, nil
