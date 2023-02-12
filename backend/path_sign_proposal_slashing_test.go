@@ -23,7 +23,6 @@ import (
 	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
-// TODO: (oleg: add blinded test + mixed + capella
 type signRequestModifier func(block *models.SignRequest)
 
 func basicProposalData(blockVersion spec.DataVersion, isBlinded bool, mods ...signRequestModifier) map[string]interface{} {
