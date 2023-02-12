@@ -8,18 +8,15 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // AttestationConcurrentSigning tests signing method concurrently.
@@ -57,22 +54,22 @@ func (test *AttestationConcurrentSigning) runSlashableAttestation(t *testing.T, 
 	wg.Add(1)
 	defer wg.Done()
 
-	randomCommittee := func() types.CommitteeIndex {
+	randomCommittee := func() phase0.CommitteeIndex {
 		max := 1000
 		min := 2
-		return types.CommitteeIndex(rand.Intn(max-min) + min)
+		return phase0.CommitteeIndex(rand.Intn(max-min) + min)
 	}
 
-	att := &eth.AttestationData{
-		Slot:            types.Slot(284115),
-		CommitteeIndex:  randomCommittee(),
+	att := &phase0.AttestationData{
+		Slot:            phase0.Slot(284115),
+		Index:           randomCommittee(),
 		BeaconBlockRoot: _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0e"),
-		Source: &eth.Checkpoint{
-			Epoch: types.Epoch(77),
+		Source: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(77),
 			Root:  _byteArray32("7402fdc1ce16d449d637c34a172b349a12b2bae8d6d77e401006594d8057c33d"),
 		},
-		Target: &eth.Checkpoint{
-			Epoch: types.Epoch(78),
+		Target: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(78),
 			Root:  _byteArray32("17959acc370274756fa5e9fdd7e7adf17204f49cc8457e49438c42c4883cbfb0"),
 		},
 	}
@@ -87,7 +84,7 @@ func (test *AttestationConcurrentSigning) runSlashableAttestation(t *testing.T, 
 	}
 }
 
-func (test *AttestationConcurrentSigning) serializedReq(pk, root, domain []byte, attestation *eth.AttestationData) (map[string]interface{}, error) {
+func (test *AttestationConcurrentSigning) serializedReq(pk, root []byte, domain [32]byte, attestation *phase0.AttestationData) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -95,7 +92,7 @@ func (test *AttestationConcurrentSigning) serializedReq(pk, root, domain []byte,
 		Object:          &models.SignRequestAttestationData{AttestationData: attestation},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

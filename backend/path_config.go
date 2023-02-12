@@ -10,7 +10,13 @@ import (
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/pkg/errors"
-	fieldparams "github.com/prysmaticlabs/prysm/config/fieldparams"
+)
+
+var (
+	// BLSPubkeyLength is the length of a BLS public key.
+	BLSPubkeyLength = 48
+	// FeeRecipientLength is the length of a fee recipient address.
+	FeeRecipientLength = 20
 )
 
 // Endpoints patterns
@@ -157,7 +163,7 @@ func ParseFeeRecipients(input map[string]interface{}) (FeeRecipients, error) {
 			normalizedKey = "default"
 		default:
 			validatorPubkey, err := hexutil.Decode(key)
-			if err != nil || len(validatorPubkey) != fieldparams.BLSPubkeyLength {
+			if err != nil || len(validatorPubkey) != BLSPubkeyLength {
 				return nil, errors.Wrap(err, "invalid fee_recipients provided")
 			}
 			normalizedKey = hexutil.Encode(validatorPubkey)
@@ -166,7 +172,7 @@ func ParseFeeRecipients(input map[string]interface{}) (FeeRecipients, error) {
 		// Decode and validate the fee recipient address.
 		recipientAddrStr, _ := value.(string)
 		recipientAddr, err := hexutil.Decode(recipientAddrStr)
-		if err != nil || len(recipientAddr) != fieldparams.FeeRecipientLength {
+		if err != nil || len(recipientAddr) != FeeRecipientLength {
 			return nil, errors.Wrap(err, "invalid fee_recipients provided")
 		}
 

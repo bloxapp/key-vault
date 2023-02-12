@@ -3,7 +3,7 @@ package launcher
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -51,12 +51,12 @@ func (l *Docker) inspectExecResp(ctx context.Context, containerID string, comman
 		return nil, ctx.Err()
 	}
 
-	stdout, err := ioutil.ReadAll(&outBuf)
+	stdout, err := io.ReadAll(&outBuf)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read stdout")
 	}
 
-	stderr, err := ioutil.ReadAll(&errBuf)
+	stderr, err := io.ReadAll(&errBuf)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read stderr")
 	}

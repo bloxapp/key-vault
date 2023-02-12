@@ -4,21 +4,21 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
+	"github.com/attestantio/go-eth2-client/api"
+	eth2apiv1 "github.com/attestantio/go-eth2-client/api/v1"
+	"github.com/attestantio/go-eth2-client/spec"
+	"github.com/attestantio/go-eth2-client/spec/bellatrix"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-
-	"github.com/prysmaticlabs/go-bitfield"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-
 	"github.com/hashicorp/vault/sdk/logical"
+	"github.com/prysmaticlabs/go-bitfield"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bloxapp/key-vault/keymanager/models"
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 func setupStorageWithWalletAndAccounts(storage logical.Storage) error {
@@ -31,23 +31,23 @@ func basicAggregationAndProofData() map[string]interface{} {
 }
 
 func basicAggregationAndProofDataWithOps(undefinedPubKey bool) map[string]interface{} {
-	agg := &ethpb.AggregateAttestationAndProof{
-		AggregatorIndex: types.ValidatorIndex(1),
-		SelectionProof:  make([]byte, 96),
-		Aggregate: &ethpb.Attestation{
+	agg := &phase0.AggregateAndProof{
+		AggregatorIndex: phase0.ValidatorIndex(1),
+		SelectionProof:  [96]byte{},
+		Aggregate: &phase0.Attestation{
 			AggregationBits: bitfield.NewBitlist(12),
-			Signature:       make([]byte, 96),
-			Data: &ethpb.AttestationData{
-				Slot:            types.Slot(1),
-				CommitteeIndex:  types.CommitteeIndex(12),
-				BeaconBlockRoot: make([]byte, 32),
-				Source: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+			Signature:       [96]byte{},
+			Data: &phase0.AttestationData{
+				Slot:            phase0.Slot(1),
+				Index:           phase0.CommitteeIndex(12),
+				BeaconBlockRoot: [32]byte{},
+				Source: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
-				Target: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+				Target: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
 			},
 		},
@@ -64,7 +64,7 @@ func basicAggregationAndProofDataWithOps(undefinedPubKey bool) map[string]interf
 		req.PublicKey = _byteArray("95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcd")
 	}
 
-	byts, _ := encoderv2.New().Encode(req)
+	byts, _ := encoder.New().Encode(req)
 	return map[string]interface{}{
 		"sign_req": hex.EncodeToString(byts),
 	}
@@ -73,12 +73,12 @@ func basicAggregationAndProofDataWithOps(undefinedPubKey bool) map[string]interf
 func TestSignAttestation(t *testing.T) {
 	b, _ := getBackend(t)
 
-	//t.Run("Sign Attestation in non existing key vault", func(t *testing.T) {
+	// t.Run("Sign Attestation in non existing key vault", func(t *testing.T) {
 	//	req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 	//	setupBaseStorage(t, req)
 	//	_, err := b.HandleRequest(context.Background(), req)
 	//	require.EqualError(t, err, "failed to sign: failed to open key vault: wallet not found")
-	//})
+	// })
 
 	t.Run("Sign Attestation of unknown account", func(t *testing.T) {
 		req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
@@ -99,7 +99,7 @@ func TestSignAttestation(t *testing.T) {
 func TestSignProposal(t *testing.T) {
 	b, _ := getBackend(t)
 
-	withEachBlockVersion(t, "Successfully Sign Proposal", func(t *testing.T, blockVersion int) {
+	withEachBlockVersion(t, "Successfully Sign Proposal", func(t *testing.T, blockVersion spec.DataVersion, isBlinded bool) {
 		req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 		setupBaseStorage(t, req)
 
@@ -107,21 +107,21 @@ func TestSignProposal(t *testing.T) {
 		err := setupStorageWithWalletAndAccounts(req.Storage)
 		require.NoError(t, err)
 
-		data := basicProposalData(blockVersion)
+		data := basicProposalData(blockVersion, isBlinded)
 		req.Data = data
 		res, err := b.HandleRequest(context.Background(), req)
 		require.NoError(t, err)
 		require.NotNil(t, res.Data)
 	})
 
-	//t.Run("Sign Proposal in non existing key vault", func(t *testing.T) {
+	// t.Run("Sign Proposal in non existing key vault", func(t *testing.T) {
 	//	req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 	//	setupBaseStorage(t, req)
 	//	_, err := b.HandleRequest(context.Background(), req)
 	//	require.EqualError(t, err, "failed to sign: failed to open key vault: wallet not found")
-	//})
+	// })
 
-	withEachBlockVersion(t, "Sign Proposal of unknown account", func(t *testing.T, blockVersion int) {
+	withEachBlockVersion(t, "Sign Proposal of unknown account", func(t *testing.T, blockVersion spec.DataVersion, isBlinded bool) {
 		req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 		setupBaseStorage(t, req, func(c *Config) {
 			c.FeeRecipients["0x95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcd"] = "0x6a3f3ee924a940ce0d795c5a41a817607e520520"
@@ -131,7 +131,7 @@ func TestSignProposal(t *testing.T) {
 		err := setupStorageWithWalletAndAccounts(req.Storage)
 		require.NoError(t, err)
 
-		req.Data = basicProposalDataWithOps(blockVersion, true, false, false, false)
+		req.Data = basicProposalDataWithOps(blockVersion, false, true, false, false, false)
 		resp, err := b.HandleRequest(context.Background(), req)
 		require.NotNil(t, err)
 		require.EqualError(t, err, "failed to sign: account not found")
@@ -155,12 +155,12 @@ func TestSignAggregation(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	//t.Run("Sign Aggregation in non existing key vault", func(t *testing.T) {
+	// t.Run("Sign Aggregation in non existing key vault", func(t *testing.T) {
 	//	req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 	//	setupBaseStorage(t, req)
 	//	_, err := b.HandleRequest(context.Background(), req)
 	//	require.EqualError(t, err, "failed to sign: failed to open key vault: wallet not found")
-	//})
+	// })
 
 	t.Run("Sign Aggregation of unknown account", func(t *testing.T) {
 		req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
@@ -182,28 +182,28 @@ func TestSignRegistration(t *testing.T) {
 	b, _ := getBackend(t)
 
 	t.Run("Sign validator registration", func(t *testing.T) {
-		pubKey := _byteArray("95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf")
-		feeRecipient := _byteArray("9831EeF7A86C19E32bEcDad091c1DbC974cf452a")
+		validatorRegistration := &eth2apiv1.ValidatorRegistration{}
+		jsonData := []byte(`{"fee_recipient":"0x000102030405060708090a0b0c0d0e0f10111213","gas_limit":"100","timestamp":"100","pubkey":"0x95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf"}`)
+		err := json.Unmarshal(jsonData, validatorRegistration)
+		require.NoError(t, err)
 
 		req := logical.TestRequest(t, logical.CreateOperation, "accounts/sign")
 		setupBaseStorage(t, req, func(c *Config) {
-			c.FeeRecipients = FeeRecipients{hexutil.Encode(pubKey): hexutil.Encode(feeRecipient)}
+			c.FeeRecipients = FeeRecipients{hexutil.Encode(validatorRegistration.Pubkey[:]): hexutil.Encode(validatorRegistration.FeeRecipient[:])}
 		})
 
 		// setup storage
-		err := setupStorageWithWalletAndAccounts(req.Storage)
+		err = setupStorageWithWalletAndAccounts(req.Storage)
 		require.NoError(t, err)
 
-		byts, err := encoderv2.New().Encode(&models.SignRequest{
-			PublicKey:       pubKey,
+		byts, err := encoder.New().Encode(&models.SignRequest{
+			PublicKey:       validatorRegistration.Pubkey[:],
 			SigningRoot:     nil,
 			SignatureDomain: _byteArray32("00000001f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a9"),
+			// Object :
 			Object: &models.SignRequestRegistration{
-				Registration: &ethpb.ValidatorRegistrationV1{
-					FeeRecipient: feeRecipient,
-					GasLimit:     123456,
-					Timestamp:    1658313712,
-					Pubkey:       pubKey,
+				VersionedValidatorRegistration: &api.VersionedValidatorRegistration{
+					V1: validatorRegistration,
 				},
 			},
 		})
@@ -213,7 +213,7 @@ func TestSignRegistration(t *testing.T) {
 		}
 		resp, err := b.HandleRequest(context.Background(), req)
 		require.Nil(t, err)
-		require.Equal(t, resp.Data["signature"], "ac1694a323372f7e40e5366d5ceb5167f23557c6415bdbab6e26f62f10de42b7e979238c6c00124846af6fd3d804961e084ba1ccd5280521fb75d81baf9ccac2450df00c7c749b711cdeb0dd5b9ffa0d7738369d25196ea839557377f3a7b356")
+		require.Equal(t, "a025bfab2f2fb95ed990235889c8b7693c4ca5bd4a5e772d7a2bf02de412dc029a61b491902528da433b1180dfbb18250ff056f4cb67d6be6f50f76ec655539d77ef68bf9fbcb0c5f0c56b9c8c0ce829e5deb79270ce8fd5da593f67b006b7de", resp.Data["signature"])
 	})
 }
 
@@ -308,7 +308,10 @@ func TestValidateRequestedFeeRecipient(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validateRequestedFeeRecipient(hexutil.MustDecode(test.requestedValidator), test.configured, hexutil.MustDecode(test.requestedRecipient))
+			var feeRecipient bellatrix.ExecutionAddress
+			recipientBytes := hexutil.MustDecode(test.requestedRecipient)
+			copy(feeRecipient[:], recipientBytes)
+			err := validateRequestedFeeRecipient(hexutil.MustDecode(test.requestedValidator), test.configured, feeRecipient)
 			require.Equal(t, test.expectedErr, err)
 		})
 	}

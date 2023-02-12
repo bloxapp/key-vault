@@ -1,10 +1,12 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+)
 
 // SignRequestAttestationData struct
 type SignRequestAttestationData struct {
-	AttestationData *eth.AttestationData
+	AttestationData *phase0.AttestationData
 }
 
 // isSignRequestObject implement func

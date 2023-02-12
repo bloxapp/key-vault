@@ -4,21 +4,17 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	"github.com/bloxapp/eth2-key-manager/signer"
-
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
+	"github.com/bloxapp/eth2-key-manager/signer"
 	slashingprotection "github.com/bloxapp/eth2-key-manager/slashing_protection"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bloxapp/key-vault/utils/encoder"
+
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
-	consensusblocks "github.com/prysmaticlabs/prysm/consensus-types/blocks"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // ProposalSigning tests sign proposal endpoint.
@@ -53,9 +49,7 @@ func (test *ProposalSigning) Run(t *testing.T) {
 	protector := slashingprotection.NewNormalProtection(storage)
 	var signer signer.ValidatorSigner = signer.NewSimpleSigner(wallet, protector, storage.Network())
 
-	wrappedBlk, err := consensusblocks.NewBeaconBlock(blk)
-	require.NoError(t, err)
-	res, err := signer.SignBeaconBlock(wrappedBlk, domain, pubKeyBytes)
+	res, _, err := signer.SignBeaconBlock(blk, domain, pubKeyBytes)
 	require.NoError(t, err)
 
 	// Send sign attestation request
@@ -65,15 +59,15 @@ func (test *ProposalSigning) Run(t *testing.T) {
 	require.Equal(t, res, sig)
 }
 
-func (test *ProposalSigning) serializedReq(pk, root, domain []byte, blk *eth.BeaconBlock) (map[string]interface{}, error) {
+func (test *ProposalSigning) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
 		SignatureDomain: domain,
-		Object:          &models.SignRequestBlock{Block: blk},
+		Object:          &models.SignRequestBlock{VersionedBeaconBlock: blk},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

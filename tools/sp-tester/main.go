@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"sync"
@@ -52,7 +52,7 @@ func main() {
 	// Prepare request bodies
 	bodies := make([][]byte, config.ParallelRequest)
 	for i := 1; i <= config.ParallelRequest; i++ {
-		cont, err := ioutil.ReadFile(fmt.Sprintf(config.FileFormat, i))
+		cont, err := os.ReadFile(fmt.Sprintf(config.FileFormat, i))
 		if err != nil {
 			logrus.Fatal(err)
 		}
@@ -84,7 +84,7 @@ func main() {
 				}
 
 				// Read response body
-				respBody, err := ioutil.ReadAll(resp.Body)
+				respBody, err := io.ReadAll(resp.Body)
 				if err != nil {
 					logrus.Println(err)
 				}

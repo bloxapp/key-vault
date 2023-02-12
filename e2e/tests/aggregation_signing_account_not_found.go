@@ -2,18 +2,15 @@ package tests
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
+
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 
 	"github.com/bloxapp/key-vault/keymanager/models"
 
 	"github.com/prysmaticlabs/go-bitfield"
 
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
@@ -37,23 +34,23 @@ func (test *AggregationSigningAccountNotFound) Run(t *testing.T) {
 	// setup vault with db
 	setup.UpdateStorage(t, core.PraterNetwork, true, core.HDWallet, nil)
 
-	agg := &ethpb.AggregateAttestationAndProof{
-		AggregatorIndex: types.ValidatorIndex(1),
-		SelectionProof:  make([]byte, 96),
-		Aggregate: &ethpb.Attestation{
+	agg := &phase0.AggregateAndProof{
+		AggregatorIndex: phase0.ValidatorIndex(1),
+		SelectionProof:  [96]byte{},
+		Aggregate: &phase0.Attestation{
 			AggregationBits: bitfield.NewBitlist(12),
-			Signature:       make([]byte, 96),
-			Data: &ethpb.AttestationData{
-				Slot:            types.Slot(1),
-				CommitteeIndex:  types.CommitteeIndex(12),
-				BeaconBlockRoot: make([]byte, 32),
-				Source: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+			Signature:       [96]byte{},
+			Data: &phase0.AttestationData{
+				Slot:            phase0.Slot(1),
+				Index:           phase0.CommitteeIndex(12),
+				BeaconBlockRoot: [32]byte{},
+				Source: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
-				Target: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+				Target: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
 			},
 		},
@@ -64,10 +61,10 @@ func (test *AggregationSigningAccountNotFound) Run(t *testing.T) {
 	_, err = setup.Sign("sign", req, core.PraterNetwork)
 	require.Error(t, err)
 	require.IsType(t, &e2e.ServiceError{}, err)
-	require.EqualValues(t, fmt.Sprintf("1 error occurred:\n\t* failed to sign: account not found\n\n"), err.(*e2e.ServiceError).ErrorValue())
+	require.EqualValues(t, "1 error occurred:\n\t* failed to sign: account not found\n\n", err.(*e2e.ServiceError).ErrorValue())
 }
 
-func (test *AggregationSigningAccountNotFound) serializedReq(pk, root, domain []byte, agg *ethpb.AggregateAttestationAndProof) (map[string]interface{}, error) {
+func (test *AggregationSigningAccountNotFound) serializedReq(pk, root []byte, domain [32]byte, agg *phase0.AggregateAndProof) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -75,7 +72,7 @@ func (test *AggregationSigningAccountNotFound) serializedReq(pk, root, domain []
 		Object:          &models.SignRequestAggregateAttestationAndProof{AggregateAttestationAndProof: agg},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

@@ -4,16 +4,14 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bloxapp/key-vault/utils/encoder"
+
 	"github.com/bloxapp/key-vault/e2e"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // RandaoReferenceSigning tests sign proposal endpoint.
@@ -51,15 +49,15 @@ func (test *RandaoReferenceSigning) Run(t *testing.T) {
 	require.Equal(t, expectedSig, sig)
 }
 
-func (test *RandaoReferenceSigning) serializedReq(pk, root, domain []byte, epoch uint64) (map[string]interface{}, error) {
+func (test *RandaoReferenceSigning) serializedReq(pk, root []byte, domain [32]byte, epoch uint64) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
 		SignatureDomain: domain,
-		Object:          &models.SignRequestEpoch{Epoch: types.Epoch(epoch)},
+		Object:          &models.SignRequestEpoch{Epoch: phase0.Epoch(epoch)},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

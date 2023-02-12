@@ -1,10 +1,12 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/spec/altair"
+)
 
 // SignRequestContributionAndProof struct
 type SignRequestContributionAndProof struct {
-	ContributionAndProof *eth.ContributionAndProof
+	ContributionAndProof *altair.ContributionAndProof
 }
 
 // isSignRequestObject implement func

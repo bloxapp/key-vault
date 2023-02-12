@@ -5,14 +5,12 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	encoder2 "github.com/bloxapp/key-vault/utils/encoder"
-
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 // Factory returns the backend factory
@@ -33,7 +31,7 @@ func newBackend(version string, logger *logrus.Logger) *backend {
 		Version:     version,
 		signMapLock: &sync.Mutex{},
 		signLock:    make(map[string]*sync.Mutex),
-		encoder:     encoderv2.New(),
+		encoder:     encoder.New(),
 	}
 	b.Backend = &framework.Backend{
 		Help: "",
@@ -63,7 +61,7 @@ type backend struct {
 	Version     string
 	signMapLock *sync.Mutex
 	signLock    map[string]*sync.Mutex
-	encoder     encoder2.IEncoder
+	encoder     encoder.IEncoder
 }
 
 // pathExistenceCheck checks if the given path exists

@@ -4,11 +4,11 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+
 	"github.com/bloxapp/key-vault/keymanager/models"
 
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/stretchr/testify/require"
 
@@ -54,15 +54,15 @@ func (test *AggregationProofReferenceSigning) Run(t *testing.T) {
 	require.EqualValues(t, expectedSig, sig)
 }
 
-func (test *AggregationProofReferenceSigning) serializedReq(pk, root, domain []byte, slot uint64) (map[string]interface{}, error) {
+func (test *AggregationProofReferenceSigning) serializedReq(pk, root []byte, domain [32]byte, slot uint64) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
 		SignatureDomain: domain,
-		Object:          &models.SignRequestSlot{Slot: types.Slot(slot)},
+		Object:          &models.SignRequestSlot{Slot: phase0.Slot(slot)},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

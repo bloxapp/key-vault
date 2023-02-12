@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"sync"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	vault "github.com/bloxapp/eth2-key-manager"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/pkg/errors"
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 
 	"github.com/bloxapp/key-vault/backend/store"
 )
@@ -23,8 +23,8 @@ const (
 
 // SlashingHistory contains slashing history data.
 type SlashingHistory struct {
-	HighestAttestation *eth.AttestationData
-	HighestProposal    *eth.BeaconBlock
+	HighestAttestation *phase0.AttestationData
+	HighestProposal    phase0.Slot
 }
 
 func storageSlashingDataPaths(b *backend) []*framework.Path {
@@ -113,26 +113,35 @@ func loadAccountSlashingHistory(storage *store.HashicorpVaultStore, pubKey []byt
 	var wg sync.WaitGroup
 
 	// Fetch attestations
-	var highestAtt *eth.AttestationData
+	var highestAtt *phase0.AttestationData
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
-		highestAtt = storage.RetrieveHighestAttestation(pubKey)
+		var err error
+		highestAtt, err = storage.RetrieveHighestAttestation(pubKey)
+		if err != nil {
+			errs[0] = errors.Wrap(err, "failed to retrieve highest attestation")
+			return
+		}
 		if highestAtt == nil {
 			errs[0] = errors.Errorf("highest attestation is nil")
 		}
 	}()
 
 	// Fetch proposals
-	var proposal *eth.BeaconBlock
+	var proposal phase0.Slot
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
 		var err error
-		proposal = storage.RetrieveHighestProposal(pubKey)
-		if proposal == nil {
+		proposal, err = storage.RetrieveHighestProposal(pubKey)
+		if err != nil {
+			errs[1] = errors.Wrap(err, "failed to retrieve highest proposal")
+			return
+		}
+		if proposal == 0 {
 			errs[1] = errors.Wrap(err, "highest proposal is nil")
 		}
 	}()

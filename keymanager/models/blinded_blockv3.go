@@ -1,11 +1,13 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/api"
+)
 
-// SignRequestBlindedBlockV3 struct
-type SignRequestBlindedBlockV3 struct {
-	BlindedBlockV3 *eth.BlindedBeaconBlockBellatrix
+// SignRequestBlindedBlock struct
+type SignRequestBlindedBlock struct {
+	VersionedBlindedBeaconBlock *api.VersionedBlindedBeaconBlock
 }
 
 // isSignRequestObject implement func
-func (m *SignRequestBlindedBlockV3) isSignRequestObject() {}
+func (m *SignRequestBlindedBlock) isSignRequestObject() {}

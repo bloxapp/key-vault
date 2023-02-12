@@ -1,10 +1,12 @@
 package models
 
-import types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
+import (
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+)
 
 // SignRequestSlot struct fir sign req slot
 type SignRequestSlot struct {
-	Slot types.Slot
+	Slot phase0.Slot
 }
 
 // isSignRequestObject implementation interface

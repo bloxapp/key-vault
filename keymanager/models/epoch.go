@@ -1,10 +1,12 @@
 package models
 
-import types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
+import (
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+)
 
 // SignRequestEpoch struct
 type SignRequestEpoch struct {
-	Epoch types.Epoch
+	Epoch phase0.Epoch
 }
 
 // isSignRequestObject implement func

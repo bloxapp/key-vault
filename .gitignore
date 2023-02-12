@@ -3,6 +3,8 @@ data/*
 logs/*
 !logs/.gitkeep
 
+.DS_Store
+
 .idea
 keys
 .env

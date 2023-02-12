@@ -19,14 +19,13 @@ for PACKAGE in $PACKAGES; do
   echo "==> golint $PACKAGE"
   golint -set_exit_status $FILES || RC=1
 
-  # TODO: uncomment after goimports is fixed.
-  # echo "==> goimports $PACKAGE"
-  # BADLY_FORMATTED=$(goimports -l -local "github.com/bloxapp/key-vault" $PACKAGE || true)
-  # if [[ -n $BADLY_FORMATTED ]]; then
-  #   RC=1
-  #   echo "Error: These files are badly formatted: $BADLY_FORMATTED"
-  #   goimports -d -local "github.com/bloxapp/key-vault" $PACKAGE
-  # fi
+  echo "==> goimports $PACKAGE"
+  BADLY_FORMATTED=$(goimports -l -local "github.com/bloxapp/key-vault" $PACKAGE || true)
+  if [[ -n $BADLY_FORMATTED ]]; then
+   RC=1
+   echo "Error: These files are badly formatted: $BADLY_FORMATTED"
+   goimports -d -local "github.com/bloxapp/key-vault" $PACKAGE
+  fi
 done
 
 popd

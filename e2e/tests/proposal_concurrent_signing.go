@@ -7,16 +7,15 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // ProposalConcurrentSigning tests signing method concurrently.
@@ -55,7 +54,7 @@ func (test *ProposalConcurrentSigning) runSlashableProposal(t *testing.T, cnt *i
 	defer wg.Done()
 
 	blk := referenceBlock(t)
-	blk.ParentRoot = _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0d")
+	blk.Phase0.ParentRoot = _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0d")
 	domain := _byteArray32("01000000f071c66c6561d0b939feb15f513a019d99a84bd85635221e3ad42dac")
 	req, err := test.serializedReq(pubKey, nil, domain, blk)
 	require.NoError(t, err)
@@ -66,15 +65,15 @@ func (test *ProposalConcurrentSigning) runSlashableProposal(t *testing.T, cnt *i
 	}
 }
 
-func (test *ProposalConcurrentSigning) serializedReq(pk, root, domain []byte, blk *eth.BeaconBlock) (map[string]interface{}, error) {
+func (test *ProposalConcurrentSigning) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
 		SignatureDomain: domain,
-		Object:          &models.SignRequestBlock{Block: blk},
+		Object:          &models.SignRequestBlock{VersionedBeaconBlock: blk},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

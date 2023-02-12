@@ -4,15 +4,13 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+
 	"github.com/bloxapp/key-vault/keymanager/models"
 
 	"github.com/prysmaticlabs/go-bitfield"
 
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/bloxapp/eth2-key-manager/signer"
 
@@ -48,23 +46,23 @@ func (test *AggregationSigning) Run(t *testing.T) {
 	wallet, err := storage.OpenWallet()
 	require.NoError(t, err)
 
-	agg := &ethpb.AggregateAttestationAndProof{
-		AggregatorIndex: types.ValidatorIndex(1),
-		SelectionProof:  make([]byte, 96),
-		Aggregate: &ethpb.Attestation{
+	agg := &phase0.AggregateAndProof{
+		AggregatorIndex: phase0.ValidatorIndex(1),
+		SelectionProof:  [96]byte{},
+		Aggregate: &phase0.Attestation{
 			AggregationBits: bitfield.NewBitlist(12),
-			Signature:       make([]byte, 96),
-			Data: &ethpb.AttestationData{
-				Slot:            types.Slot(1),
-				CommitteeIndex:  types.CommitteeIndex(12),
-				BeaconBlockRoot: make([]byte, 32),
-				Source: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+			Signature:       [96]byte{},
+			Data: &phase0.AttestationData{
+				Slot:            phase0.Slot(1),
+				Index:           phase0.CommitteeIndex(12),
+				BeaconBlockRoot: [32]byte{},
+				Source: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
-				Target: &ethpb.Checkpoint{
-					Epoch: types.Epoch(1),
-					Root:  make([]byte, 32),
+				Target: &phase0.Checkpoint{
+					Epoch: phase0.Epoch(1),
+					Root:  [32]byte{},
 				},
 			},
 		},
@@ -77,7 +75,7 @@ func (test *AggregationSigning) Run(t *testing.T) {
 	protector := slashingprotection.NewNormalProtection(inmemory.NewInMemStore(core.PraterNetwork))
 	var signer signer.ValidatorSigner = signer.NewSimpleSigner(wallet, protector, storage.Network())
 
-	res, err := signer.SignAggregateAndProof(agg, domain, pubKeyBytes)
+	res, _, err := signer.SignAggregateAndProof(agg, domain, pubKeyBytes)
 	require.NoError(t, err)
 
 	// Send sign attestation request
@@ -87,7 +85,7 @@ func (test *AggregationSigning) Run(t *testing.T) {
 	require.EqualValues(t, res, sig)
 }
 
-func (test *AggregationSigning) serializedReq(pk, root, domain []byte, agg *ethpb.AggregateAttestationAndProof) (map[string]interface{}, error) {
+func (test *AggregationSigning) serializedReq(pk, root []byte, domain [32]byte, agg *phase0.AggregateAndProof) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -95,7 +93,7 @@ func (test *AggregationSigning) serializedReq(pk, root, domain []byte, agg *ethp
 		Object:          &models.SignRequestAggregateAttestationAndProof{AggregateAttestationAndProof: agg},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

@@ -5,19 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bloxapp/key-vault/utils/encoder"
+
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // AttestationFarFutureSigning tests sign attestation endpoint with future signing.
@@ -39,8 +35,8 @@ func (test *AttestationFarFutureSigning) Run(t *testing.T) {
 	require.NotNil(t, account)
 	pubKeyBytes := account.ValidatorPublicKey()
 
-	expectedSourceErr := fmt.Sprintf("map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: source epoch too far into the future\\n\\n\"}}")
-	expectedTargetErr := fmt.Sprintf("map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: target epoch too far into the future\\n\\n\"}}")
+	expectedSourceErr := "map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: source epoch too far into the future\\n\\n\"}}"
+	expectedTargetErr := "map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: target epoch too far into the future\\n\\n\"}}"
 
 	currentEpoch := core.PraterNetwork.EstimatedCurrentEpoch()
 	futureEpoch := core.PraterNetwork.EstimatedCurrentEpoch() + 1000
@@ -53,19 +49,19 @@ func (test *AttestationFarFutureSigning) testFarFuture(
 	t *testing.T,
 	setup *e2e.BaseSetup,
 	pubKeyBytes []byte,
-	source types.Epoch,
-	target types.Epoch,
+	source phase0.Epoch,
+	target phase0.Epoch,
 	expectedErr string,
 ) {
-	att := &eth.AttestationData{
+	att := &phase0.AttestationData{
 		Slot:            core.PraterNetwork.EstimatedCurrentSlot() + 1000,
-		CommitteeIndex:  types.CommitteeIndex(2),
+		Index:           phase0.CommitteeIndex(2),
 		BeaconBlockRoot: _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0e"),
-		Source: &eth.Checkpoint{
+		Source: &phase0.Checkpoint{
 			Epoch: source,
 			Root:  _byteArray32("7402fdc1ce16d449d637c34a172b349a12b2bae8d6d77e401006594d8057c33d"),
 		},
-		Target: &eth.Checkpoint{
+		Target: &phase0.Checkpoint{
 			Epoch: target,
 			Root:  _byteArray32("17959acc370274756fa5e9fdd7e7adf17204f49cc8457e49438c42c4883cbfb0"),
 		},
@@ -80,7 +76,7 @@ func (test *AttestationFarFutureSigning) testFarFuture(
 	require.EqualError(t, err, expectedErr, fmt.Sprintf("actual: %s\n", err.Error()))
 }
 
-func (test *AttestationFarFutureSigning) serializedReq(pk, root, domain []byte, attestation *eth.AttestationData) (map[string]interface{}, error) {
+func (test *AttestationFarFutureSigning) serializedReq(pk, root []byte, domain [32]byte, attestation *phase0.AttestationData) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -88,7 +84,7 @@ func (test *AttestationFarFutureSigning) serializedReq(pk, root, domain []byte, 
 		Object:          &models.SignRequestAttestationData{AttestationData: attestation},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

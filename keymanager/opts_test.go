@@ -2,7 +2,6 @@ package keymanager
 
 import (
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -22,14 +21,14 @@ func TestUnmarshalConfigFile(t *testing.T) {
 		{
 			name: "invalid JSON string",
 			args: args{
-				r: ioutil.NopCloser(strings.NewReader(`invalid`)),
+				r: io.NopCloser(strings.NewReader(`invalid`)),
 			},
 			wantErr: true,
 		},
 		{
 			name: "valid JSON string",
 			args: args{
-				r: ioutil.NopCloser(strings.NewReader(`{"location":"location","access_token":"access_token","public_key":"public_key","network":"network"}`)),
+				r: io.NopCloser(strings.NewReader(`{"location":"location","access_token":"access_token","public_key":"public_key","network":"network"}`)),
 			},
 			want: &Config{
 				Location:    "location",

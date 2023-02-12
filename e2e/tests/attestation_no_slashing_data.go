@@ -5,19 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bloxapp/key-vault/utils/encoder"
+
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // AttestationNoSlashingDataSigning tests sign attestation endpoint.
@@ -39,16 +35,16 @@ func (test *AttestationNoSlashingDataSigning) Run(t *testing.T) {
 	require.NotNil(t, account)
 	pubKeyBytes := account.ValidatorPublicKey()
 
-	att := &eth.AttestationData{
-		Slot:            types.Slot(284115),
-		CommitteeIndex:  types.CommitteeIndex(2),
+	att := &phase0.AttestationData{
+		Slot:            phase0.Slot(284115),
+		Index:           phase0.CommitteeIndex(2),
 		BeaconBlockRoot: _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0e"),
-		Source: &eth.Checkpoint{
-			Epoch: types.Epoch(77),
+		Source: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(77),
 			Root:  _byteArray32("7402fdc1ce16d449d637c34a172b349a12b2bae8d6d77e401006594d8057c33d"),
 		},
-		Target: &eth.Checkpoint{
-			Epoch: types.Epoch(78),
+		Target: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(78),
 			Root:  _byteArray32("17959acc370274756fa5e9fdd7e7adf17204f49cc8457e49438c42c4883cbfb0"),
 		},
 	}
@@ -58,11 +54,11 @@ func (test *AttestationNoSlashingDataSigning) Run(t *testing.T) {
 	req, err := test.serializedReq(pubKeyBytes, nil, domain, att)
 	require.NoError(t, err)
 	_, err = setup.Sign("sign", req, core.PraterNetwork)
-	expectedErr := fmt.Sprintf("map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: highest attestation data is nil, can't determine if attestation is slashable\\n\\n\"}}")
+	expectedErr := "map[string]interface {}{\"errors\":[]interface {}{\"1 error occurred:\\n\\t* failed to sign: highest attestation data is nil, can't determine if attestation is slashable\\n\\n\"}}"
 	require.EqualError(t, err, expectedErr, fmt.Sprintf("actual: %s\n", err.Error()))
 }
 
-func (test *AttestationNoSlashingDataSigning) serializedReq(pk, root, domain []byte, attestation *eth.AttestationData) (map[string]interface{}, error) {
+func (test *AttestationNoSlashingDataSigning) serializedReq(pk, root []byte, domain [32]byte, attestation *phase0.AttestationData) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -70,7 +66,7 @@ func (test *AttestationNoSlashingDataSigning) serializedReq(pk, root, domain []b
 		Object:          &models.SignRequestAttestationData{AttestationData: attestation},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

@@ -15,8 +15,7 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/pkg/errors"
 
-	encoder2 "github.com/bloxapp/key-vault/utils/encoder"
-	"github.com/bloxapp/key-vault/utils/encoder/legacy"
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 // Paths
@@ -31,7 +30,7 @@ type HashicorpVaultStore struct {
 	storage logical.Storage
 	ctx     context.Context
 	network core.Network
-	encoder encoder2.IEncoder
+	encoder encoder.IEncoder
 
 	encryptor          encryptor.Encryptor
 	encryptionPassword []byte
@@ -43,7 +42,7 @@ func NewHashicorpVaultStore(ctx context.Context, storage logical.Storage, networ
 		storage: storage,
 		network: network,
 		ctx:     ctx,
-		encoder: legacy.New(),
+		encoder: encoder.New(),
 	}
 }
 
@@ -98,15 +97,23 @@ func FromInMemoryStoreV2(ctx context.Context, newStorage *inmemory.InMemStore, e
 		}
 
 		// Save highest attestation
-		if val := newStorage.RetrieveHighestAttestation(newAccount.ValidatorPublicKey()); val != nil {
-			if err := hashicorpStore.SaveHighestAttestation(newAccount.ValidatorPublicKey(), val); err != nil {
+		highestAtt, err := newStorage.RetrieveHighestAttestation(newAccount.ValidatorPublicKey())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
+		}
+		if highestAtt != nil {
+			if err := hashicorpStore.SaveHighestAttestation(newAccount.ValidatorPublicKey(), highestAtt); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest attestation")
 			}
 		}
 
 		// Save highest proposal
-		if val := newStorage.RetrieveHighestProposal(newAccount.ValidatorPublicKey()); val != nil {
-			if err := hashicorpStore.SaveHighestProposal(newAccount.ValidatorPublicKey(), val); err != nil {
+		highestProposal, err := newStorage.RetrieveHighestProposal(newAccount.ValidatorPublicKey())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
+		}
+		if highestProposal != 0 {
+			if err := hashicorpStore.SaveHighestProposal(newAccount.ValidatorPublicKey(), highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}
 		}
@@ -169,8 +176,12 @@ func FromInMemoryStore(ctx context.Context, newStorage *inmemory.InMemStore, exi
 
 	// save highest att.
 	for _, acc := range wallet.Accounts() {
-		if val := newStorage.RetrieveHighestAttestation(acc.ValidatorPublicKey()); val != nil {
-			if err := newHashicorpVaultStore.SaveHighestAttestation(acc.ValidatorPublicKey(), val); err != nil {
+		highestAtt, err := newStorage.RetrieveHighestAttestation(acc.ValidatorPublicKey())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
+		}
+		if highestAtt != nil {
+			if err := newHashicorpVaultStore.SaveHighestAttestation(acc.ValidatorPublicKey(), highestAtt); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest attestation")
 			}
 		}
@@ -178,8 +189,13 @@ func FromInMemoryStore(ctx context.Context, newStorage *inmemory.InMemStore, exi
 
 	// save highest proposal.
 	for _, acc := range wallet.Accounts() {
-		if val := newStorage.RetrieveHighestProposal(acc.ValidatorPublicKey()); val != nil {
-			if err := newHashicorpVaultStore.SaveHighestProposal(acc.ValidatorPublicKey(), val); err != nil {
+		// Save highest proposal
+		highestProposal, err := newStorage.RetrieveHighestProposal(acc.ValidatorPublicKey())
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
+		}
+		if highestProposal != 0 {
+			if err := newHashicorpVaultStore.SaveHighestProposal(acc.ValidatorPublicKey(), highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}
 		}

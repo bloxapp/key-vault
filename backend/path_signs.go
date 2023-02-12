@@ -5,18 +5,17 @@ import (
 	"encoding/hex"
 	"sync"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-	"github.com/ethereum/go-ethereum/common"
-
+	"github.com/attestantio/go-eth2-client/spec/bellatrix"
 	vault "github.com/bloxapp/eth2-key-manager"
 	"github.com/bloxapp/eth2-key-manager/signer"
 	slashingprotection "github.com/bloxapp/eth2-key-manager/slashing_protection"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
 	"github.com/pkg/errors"
-	consensusblocks "github.com/prysmaticlabs/prysm/consensus-types/blocks"
 
 	"github.com/bloxapp/key-vault/backend/store"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // Endpoints patterns
@@ -93,53 +92,33 @@ func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *fram
 
 		switch t := signReq.GetObject().(type) {
 		case *models.SignRequestBlock:
-			wrappedBlk, wrapErr := consensusblocks.NewBeaconBlock(t.Block)
-			if err != nil {
-				return errors.Wrap(wrapErr, "failed to wrap Phase0 block")
-			}
-			sig, sigErr = simpleSigner.SignBeaconBlock(wrappedBlk, signReq.SignatureDomain, signReq.PublicKey)
-		case *models.SignRequestBlockV2:
-			wrappedBlk, wrapErr := consensusblocks.NewBeaconBlock(t.BlockV2)
-			if err != nil {
-				return errors.Wrap(wrapErr, "failed to wrap Altair block")
-			}
-			sig, sigErr = simpleSigner.SignBeaconBlock(wrappedBlk, signReq.SignatureDomain, signReq.PublicKey)
-		case *models.SignRequestBlockV3:
-			validateErr := validateRequestedFeeRecipient(signReq.PublicKey, config.FeeRecipients, t.BlockV3.Body.ExecutionPayload.FeeRecipient)
-			if validateErr != nil {
-				return errors.Wrap(validateErr, "refused to sign")
-			}
-			wrappedBlk, wrapErr := consensusblocks.NewBeaconBlock(t.BlockV3)
-			if err != nil {
-				return errors.Wrap(wrapErr, "failed to wrap Bellatrix block")
-			}
-			sig, sigErr = simpleSigner.SignBeaconBlock(wrappedBlk, signReq.SignatureDomain, signReq.PublicKey)
-		case *models.SignRequestBlindedBlockV3:
-			wrappedBlk, wrapErr := consensusblocks.NewBeaconBlock(t.BlindedBlockV3)
-			if err != nil {
-				return errors.Wrap(wrapErr, "failed to wrap BlindedBellatrix block")
-			}
-			sig, sigErr = simpleSigner.SignBeaconBlock(wrappedBlk, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignBeaconBlock(t.VersionedBeaconBlock, signReq.SignatureDomain, signReq.PublicKey)
+		case *models.SignRequestBlindedBlock:
+			sig, _, sigErr = simpleSigner.SignBlindedBeaconBlock(t.VersionedBlindedBeaconBlock, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestAttestationData:
-			sig, sigErr = simpleSigner.SignBeaconAttestation(t.AttestationData, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignBeaconAttestation(t.AttestationData, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestSlot:
-			sig, sigErr = simpleSigner.SignSlot(t.Slot, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignSlot(t.Slot, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestEpoch:
-			sig, sigErr = simpleSigner.SignEpoch(t.Epoch, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignEpoch(t.Epoch, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestAggregateAttestationAndProof:
-			sig, sigErr = simpleSigner.SignAggregateAndProof(t.AggregateAttestationAndProof, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignAggregateAndProof(t.AggregateAttestationAndProof, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestSyncCommitteeMessage:
-			sig, sigErr = simpleSigner.SignSyncCommittee(t.Root, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignSyncCommittee(t.Root, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestSyncAggregatorSelectionData:
-			sig, sigErr = simpleSigner.SignSyncCommitteeSelectionData(t.SyncAggregatorSelectionData, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignSyncCommitteeSelectionData(t.SyncAggregatorSelectionData, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestContributionAndProof:
-			sig, sigErr = simpleSigner.SignSyncCommitteeContributionAndProof(t.ContributionAndProof, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignSyncCommitteeContributionAndProof(t.ContributionAndProof, signReq.SignatureDomain, signReq.PublicKey)
 		case *models.SignRequestRegistration:
-			validateErr := validateRequestedFeeRecipient(signReq.PublicKey, config.FeeRecipients, t.Registration.FeeRecipient)
+			feeRecipient, err := t.VersionedValidatorRegistration.FeeRecipient()
+			if err != nil {
+				return errors.Wrap(err, "failed to get fee recipient")
+			}
+			validateErr := validateRequestedFeeRecipient(signReq.PublicKey, config.FeeRecipients, feeRecipient)
 			if validateErr != nil {
 				return errors.Wrap(validateErr, "refused to sign")
 			}
-			sig, sigErr = simpleSigner.SignRegistration(t.Registration, signReq.SignatureDomain, signReq.PublicKey)
+			sig, _, sigErr = simpleSigner.SignRegistration(t.VersionedValidatorRegistration, signReq.SignatureDomain, signReq.PublicKey)
 		default:
 			return errors.Errorf("sign request: not supported")
 		}
@@ -185,12 +164,12 @@ var (
 	ErrFeeRecipientDiffers = errors.New("requested fee recipient does not match configured fee recipient")
 )
 
-func validateRequestedFeeRecipient(pubKey []byte, configFeeRecipients FeeRecipients, requestedFeeRecipient []byte) error {
+func validateRequestedFeeRecipient(pubKey []byte, configFeeRecipients FeeRecipients, requestedFeeRecipient bellatrix.ExecutionAddress) error {
 	feeRecipient, ok := configFeeRecipients.Get(pubKey)
 	if !ok {
 		return ErrFeeRecipientNotSet
 	}
-	if feeRecipient != common.BytesToAddress(requestedFeeRecipient) {
+	if feeRecipient != common.BytesToAddress(requestedFeeRecipient[:]) {
 		return ErrFeeRecipientDiffers
 	}
 	return nil

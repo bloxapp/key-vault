@@ -5,23 +5,17 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	encoder2 "github.com/bloxapp/key-vault/utils/encoder"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/pkg/errors"
-
-	"github.com/bloxapp/key-vault/backend"
-
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/sirupsen/logrus"
 
+	"github.com/bloxapp/key-vault/backend"
+	"github.com/bloxapp/key-vault/keymanager/models"
 	"github.com/bloxapp/key-vault/utils/bytex"
+	"github.com/bloxapp/key-vault/utils/encoder"
 	"github.com/bloxapp/key-vault/utils/endpoint"
 	"github.com/bloxapp/key-vault/utils/httpex"
 )
@@ -39,7 +33,7 @@ var (
 type IkeyManager interface {
 	FetchValidatingPublicKeys(_ context.Context) ([][48]byte, error)
 	FetchAllValidatingPublicKeys(_ context.Context) ([][48]byte, error)
-	Sign(_ context.Context, req *models.SignRequest) (bls.Signature, error)
+	Sign(_ context.Context, req *models.SignRequest) (phase0.BLSSignature, error)
 	sendRequest(_ context.Context, method, path string, reqBody interface{}, respBody interface{}) error
 }
 
@@ -51,7 +45,7 @@ type KeyManager struct {
 	pubKey        [48]byte
 	network       string
 	httpClient    *http.Client
-	encoder       encoder2.IEncoder
+	encoder       encoder.IEncoder
 
 	log *logrus.Entry
 }
@@ -84,7 +78,7 @@ func NewKeyManager(log *logrus.Entry, opts *Config) (*KeyManager, error) {
 		originPubKey:  opts.PubKey,
 		pubKey:        bytex.ToBytes48(decodedPubKey),
 		network:       opts.Network,
-		encoder:       encoderv2.New(),
+		encoder:       encoder.New(),
 		httpClient: httpex.CreateClient(log, func(resp *http.Response, err error, numTries int) (*http.Response, error) {
 			if err == nil {
 				return resp, nil
@@ -97,7 +91,7 @@ func NewKeyManager(log *logrus.Entry, opts *Config) (*KeyManager, error) {
 				if resp.Body != nil {
 					defer resp.Body.Close()
 
-					respBody, err := ioutil.ReadAll(resp.Body)
+					respBody, err := io.ReadAll(resp.Body)
 					if err != nil {
 						return resp, err
 					}
@@ -122,14 +116,14 @@ func (km *KeyManager) FetchAllValidatingPublicKeys(_ context.Context) ([][48]byt
 }
 
 // Sign implements IKeymanager interface.
-func (km *KeyManager) Sign(ctx context.Context, req *models.SignRequest) (bls.Signature, error) {
+func (km *KeyManager) Sign(ctx context.Context, req *models.SignRequest) (phase0.BLSSignature, error) {
 	if bytex.ToBytes48(req.GetPublicKey()) != km.pubKey {
-		return nil, ErrNoSuchKey
+		return phase0.BLSSignature{}, ErrNoSuchKey
 	}
 
 	byts, err := km.encoder.Encode(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to encode request")
+		return phase0.BLSSignature{}, errors.Wrap(err, "failed to encode request")
 	}
 	reqMap := map[string]interface{}{
 		"sign_req": hex.EncodeToString(byts),
@@ -137,21 +131,18 @@ func (km *KeyManager) Sign(ctx context.Context, req *models.SignRequest) (bls.Si
 
 	var resp models.SignResponse
 	if err := km.sendRequest(ctx, http.MethodPost, backend.SignPattern, reqMap, &resp); err != nil {
-		return nil, err
+		return phase0.BLSSignature{}, err
 	}
 
 	// Signature is base64 encoded, so we have to decode that.
 	decodedSignature, err := hex.DecodeString(resp.Data.Signature)
 	if err != nil {
-		return nil, NewGenericError(err, "failed to base64 decode")
+		return phase0.BLSSignature{}, NewGenericError(err, "failed to base64 decode")
 	}
 
-	// Get signature from bytes
-	sig, err := bls.SignatureFromBytes(decodedSignature)
-	if err != nil {
-		return nil, NewGenericError(err, "failed to get BLS signature from bytes")
-	}
-	return sig, nil
+	var signature phase0.BLSSignature
+	copy(signature[:], decodedSignature)
+	return signature, nil
 }
 
 // sendRequest implements the logic to work with HTTP requests.
@@ -186,7 +177,7 @@ func (km *KeyManager) sendRequest(ctx context.Context, method, path string, reqB
 
 	// Check status code. Must be 200.
 	if resp.StatusCode != http.StatusOK {
-		responseBody, err := ioutil.ReadAll(resp.Body)
+		responseBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			km.log.WithError(err).Error("failed to read error response body")
 		}

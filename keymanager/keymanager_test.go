@@ -9,7 +9,6 @@ import (
 
 	"github.com/bloxapp/key-vault/keymanager/models"
 
-	"github.com/prysmaticlabs/prysm/encoding/bytesutil"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
@@ -207,8 +206,9 @@ func _byteArray(input string) []byte {
 	return res
 }
 
-func _byteArray32(input string) []byte {
+func _byteArray32(input string) [32]byte {
 	res, _ := hex.DecodeString(input)
-	ret := bytesutil.ToBytes32(res)
-	return ret[:]
+	var res32 [32]byte
+	copy(res32[:], res)
+	return res32
 }

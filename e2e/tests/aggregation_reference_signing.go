@@ -4,11 +4,12 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+
 	"github.com/bloxapp/key-vault/keymanager/models"
 
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
+	"github.com/bloxapp/key-vault/utils/encoder"
 
-	ethpb "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bloxapp/key-vault/e2e"
@@ -41,7 +42,7 @@ func (test *AggregationReferenceSigning) Run(t *testing.T) {
 	pubKeyBytes := account.ValidatorPublicKey()
 
 	// decode object
-	agg := &ethpb.AggregateAttestationAndProof{}
+	agg := &phase0.AggregateAndProof{}
 	aggAttByts := _byteArray("01000000000000006c000000b4fa352d2d6dbdf884266af7ea0914451929b343527ea6c1737ac93b3dde8b7c98e6ce61d68b7a2e7b7af8f8d0fd429d0bdd5f930b83e6842bf4342d3d1d3d10fc0d15bab7649bb8aa8287ca104a1f79d396ce0217bb5cd3e6503a3bce4c9776e4000000000000000000000000000000000000003a43a4bf26fb5947e809c1f24f7dc6857c8ac007e535d48e6e4eca2122fd776b0000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000003a43a4bf26fb5947e809c1f24f7dc6857c8ac007e535d48e6e4eca2122fd776bb4fa352d2d6dbdf884266af7ea0914451929b343527ea6c1737ac93b3dde8b7c98e6ce61d68b7a2e7b7af8f8d0fd429d0bdd5f930b83e6842bf4342d3d1d3d10fc0d15bab7649bb8aa8287ca104a1f79d396ce0217bb5cd3e6503a3bce4c97760010")
 	require.NoError(t, agg.UnmarshalSSZ(aggAttByts))
 	domain := _byteArray32("0100000081509579e35e84020ad8751eca180b44df470332d3ad17fc6fd52459")
@@ -55,7 +56,7 @@ func (test *AggregationReferenceSigning) Run(t *testing.T) {
 	require.EqualValues(t, expectedSig, sig)
 }
 
-func (test *AggregationReferenceSigning) serializedReq(pk, root, domain []byte, agg *ethpb.AggregateAttestationAndProof) (map[string]interface{}, error) {
+func (test *AggregationReferenceSigning) serializedReq(pk, root []byte, domain [32]byte, agg *phase0.AggregateAndProof) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -63,7 +64,7 @@ func (test *AggregationReferenceSigning) serializedReq(pk, root, domain []byte, 
 		Object:          &models.SignRequestAggregateAttestationAndProof{AggregateAttestationAndProof: agg},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

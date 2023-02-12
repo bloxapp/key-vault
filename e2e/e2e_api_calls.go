@@ -7,7 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -115,7 +115,7 @@ func (setup *BaseSetup) Sign(endpoint string, data map[string]interface{}, netwo
 		return nil, err
 	}
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func (setup *BaseSetup) ListAccounts(t *testing.T, network core.Network) ([]byte
 	require.NoError(t, err)
 
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -188,7 +188,7 @@ func (setup *BaseSetup) ReadConfig(t *testing.T, network core.Network) ([]byte, 
 	require.NoError(t, err)
 
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -220,7 +220,7 @@ func (setup *BaseSetup) UpdateConfig(t *testing.T, network core.Network, data ba
 	require.NoError(t, err)
 
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -248,7 +248,7 @@ func (setup *BaseSetup) ReadSlashingStorage(t *testing.T, network core.Network) 
 	require.NoError(t, err)
 
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	defer resp.Body.Close()
 
@@ -292,7 +292,7 @@ func (setup *BaseSetup) UpdateStorage(t *testing.T, network core.Network, minima
 	require.NoError(t, err)
 
 	// Read response body
-	respBodyByts, err := ioutil.ReadAll(resp.Body)
+	respBodyByts, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
 	respBody := string(respBodyByts)

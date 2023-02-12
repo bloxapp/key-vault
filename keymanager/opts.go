@@ -3,7 +3,6 @@ package keymanager
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 
 	"github.com/pkg/errors"
 )
@@ -19,7 +18,7 @@ type Config struct {
 // UnmarshalConfigFile attempts to JSON unmarshal a keymanager
 // configuration file into the *Config{} struct.
 func UnmarshalConfigFile(r io.ReadCloser) (*Config, error) {
-	enc, err := ioutil.ReadAll(r)
+	enc, err := io.ReadAll(r)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not read config")
 	}

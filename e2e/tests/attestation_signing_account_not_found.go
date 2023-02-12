@@ -2,21 +2,16 @@ package tests
 
 import (
 	"encoding/hex"
-	"fmt"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	types "github.com/prysmaticlabs/prysm/consensus-types/primitives"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
-
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bloxapp/key-vault/utils/encoder"
+
 	"github.com/bloxapp/key-vault/e2e"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // AttestationSigningAccountNotFound tests sign attestation when account not found
@@ -36,16 +31,16 @@ func (test *AttestationSigningAccountNotFound) Run(t *testing.T) {
 	setup.UpdateStorage(t, core.PraterNetwork, true, core.HDWallet, nil)
 
 	// sign
-	att := &eth.AttestationData{
-		Slot:            types.Slot(284115),
-		CommitteeIndex:  types.CommitteeIndex(2),
+	att := &phase0.AttestationData{
+		Slot:            phase0.Slot(284115),
+		Index:           phase0.CommitteeIndex(2),
 		BeaconBlockRoot: _byteArray32("7b5679277ca45ea74e1deebc9d3e8c0e7d6c570b3cfaf6884be144a81dac9a0e"),
-		Source: &eth.Checkpoint{
-			Epoch: types.Epoch(5),
+		Source: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(5),
 			Root:  _byteArray32("7402fdc1ce16d449d637c34a172b349a12b2bae8d6d77e401006594d8057c33d"),
 		},
-		Target: &eth.Checkpoint{
-			Epoch: types.Epoch(6),
+		Target: &phase0.Checkpoint{
+			Epoch: phase0.Epoch(6),
 			Root:  _byteArray32("17959acc370274756fa5e9fdd7e7adf17204f49cc8457e49438c42c4883cbfb0"),
 		},
 	}
@@ -58,11 +53,11 @@ func (test *AttestationSigningAccountNotFound) Run(t *testing.T) {
 	res, err := setup.Sign("sign", req, core.PraterNetwork)
 	require.Error(t, err)
 	require.IsType(t, &e2e.ServiceError{}, err)
-	require.EqualValues(t, fmt.Sprintf("1 error occurred:\n\t* failed to sign: account not found\n\n"), err.(*e2e.ServiceError).ErrorValue())
+	require.EqualValues(t, "1 error occurred:\n\t* failed to sign: account not found\n\n", err.(*e2e.ServiceError).ErrorValue())
 	require.Nil(t, res)
 }
 
-func (test *AttestationSigningAccountNotFound) serializedReq(pk, root, domain []byte, attestation *eth.AttestationData) (map[string]interface{}, error) {
+func (test *AttestationSigningAccountNotFound) serializedReq(pk, root []byte, domain [32]byte, attestation *phase0.AttestationData) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -70,7 +65,7 @@ func (test *AttestationSigningAccountNotFound) serializedReq(pk, root, domain []
 		Object:          &models.SignRequestAttestationData{AttestationData: attestation},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

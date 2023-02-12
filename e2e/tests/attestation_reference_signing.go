@@ -4,16 +4,14 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/bloxapp/key-vault/keymanager/models"
-
-	"github.com/bloxapp/key-vault/utils/encoder/encoderv2"
-
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
-	"github.com/bloxapp/eth2-key-manager/core"
+	"github.com/bloxapp/key-vault/utils/encoder"
 
 	"github.com/bloxapp/key-vault/e2e"
+	"github.com/bloxapp/key-vault/keymanager/models"
 )
 
 // AttestationReferenceSigning tests sign attestation endpoint.
@@ -42,7 +40,7 @@ func (test *AttestationReferenceSigning) Run(t *testing.T) {
 
 	// Decode attestation
 	attestationDataByts := _byteArray("000000000000000000000000000000003a43a4bf26fb5947e809c1f24f7dc6857c8ac007e535d48e6e4eca2122fd776b0000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000003a43a4bf26fb5947e809c1f24f7dc6857c8ac007e535d48e6e4eca2122fd776b")
-	att := &eth.AttestationData{}
+	att := &phase0.AttestationData{}
 	require.NoError(t, att.UnmarshalSSZ(attestationDataByts))
 	domain := _byteArray32("0100000081509579e35e84020ad8751eca180b44df470332d3ad17fc6fd52459")
 
@@ -55,7 +53,7 @@ func (test *AttestationReferenceSigning) Run(t *testing.T) {
 	require.EqualValues(t, expectedSig, sig)
 }
 
-func (test *AttestationReferenceSigning) serializedReq(pk, root, domain []byte, attestation *eth.AttestationData) (map[string]interface{}, error) {
+func (test *AttestationReferenceSigning) serializedReq(pk, root []byte, domain [32]byte, attestation *phase0.AttestationData) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,
@@ -63,7 +61,7 @@ func (test *AttestationReferenceSigning) serializedReq(pk, root, domain []byte, 
 		Object:          &models.SignRequestAttestationData{AttestationData: attestation},
 	}
 
-	byts, err := encoderv2.New().Encode(req)
+	byts, err := encoder.New().Encode(req)
 	if err != nil {
 		return nil, err
 	}

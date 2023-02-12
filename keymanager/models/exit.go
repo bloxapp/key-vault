@@ -1,10 +1,12 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/spec/phase0"
+)
 
 // SignRequestExit struct
 type SignRequestExit struct {
-	Exit *eth.VoluntaryExit
+	Exit *phase0.VoluntaryExit
 }
 
 // isSignRequestObject implement func

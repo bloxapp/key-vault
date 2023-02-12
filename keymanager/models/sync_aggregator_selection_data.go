@@ -1,10 +1,12 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/spec/altair"
+)
 
 // SignRequestSyncAggregatorSelectionData struct for sign req committiee msg
 type SignRequestSyncAggregatorSelectionData struct {
-	SyncAggregatorSelectionData *eth.SyncAggregatorSelectionData
+	SyncAggregatorSelectionData *altair.SyncAggregatorSelectionData
 }
 
 // isSignRequestObject implement interface func

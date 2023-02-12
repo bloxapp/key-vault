@@ -1,10 +1,12 @@
 package models
 
-import eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+import (
+	"github.com/attestantio/go-eth2-client/api"
+)
 
 // SignRequestRegistration struct
 type SignRequestRegistration struct {
-	Registration *eth.ValidatorRegistrationV1
+	VersionedValidatorRegistration *api.VersionedValidatorRegistration
 }
 
 // isSignRequestObject implement func

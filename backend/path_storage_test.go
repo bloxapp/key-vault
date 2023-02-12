@@ -6,13 +6,12 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/bloxapp/eth2-key-manager/stores/inmemory"
 	"github.com/bloxapp/eth2-key-manager/wallets/hd"
 	"github.com/google/uuid"
 	"github.com/hashicorp/vault/sdk/logical"
-	bytesutil2 "github.com/prysmaticlabs/prysm/encoding/bytesutil"
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bloxapp/key-vault/backend/store"
@@ -23,10 +22,11 @@ func _byteArray(input string) []byte {
 	return res
 }
 
-func _byteArray32(input string) []byte {
+func _byteArray32(input string) [32]byte {
 	res, _ := hex.DecodeString(input)
-	ret := bytesutil2.ToBytes32(res)
-	return ret[:]
+	var res32 [32]byte
+	copy(res32[:], res)
+	return res32
 }
 
 func baseInmemStorage() (*inmemory.InMemStore, uuid.UUID, error) {
@@ -53,23 +53,21 @@ func baseInmemStorage() (*inmemory.InMemStore, uuid.UUID, error) {
 		return nil, uuid.UUID{}, err
 	}
 
-	err = inMemStore.SaveHighestAttestation(acc.ValidatorPublicKey(), &eth.AttestationData{
-		Source: &eth.Checkpoint{
+	err = inMemStore.SaveHighestAttestation(acc.ValidatorPublicKey(), &phase0.AttestationData{
+		Source: &phase0.Checkpoint{
 			Epoch: 0,
-			Root:  nil,
+			Root:  phase0.Root{},
 		},
-		Target: &eth.Checkpoint{
+		Target: &phase0.Checkpoint{
 			Epoch: 0,
-			Root:  nil,
+			Root:  phase0.Root{},
 		},
 	})
 	if err != nil {
 		return nil, uuid.UUID{}, err
 	}
 
-	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), &eth.BeaconBlock{
-		Slot: 0,
-	})
+	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), phase0.Slot(1))
 	if err != nil {
 		return nil, uuid.UUID{}, err
 	}
@@ -125,7 +123,8 @@ func TestStorage(t *testing.T) {
 		acc, err := wallet.AccountByPublicKey("95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf")
 		require.NoError(t, err)
 
-		att := vault.RetrieveHighestAttestation(acc.ValidatorPublicKey())
+		att, err := vault.RetrieveHighestAttestation(acc.ValidatorPublicKey())
+		require.NoError(t, err)
 		require.NotNil(t, att)
 		require.EqualValues(t, att.Source.Epoch, 0)
 		require.EqualValues(t, att.Target.Epoch, 0)

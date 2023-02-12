@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	eth "github.com/prysmaticlabs/prysm/proto/prysm/v1alpha1"
+	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bloxapp/eth2-key-manager/core"
@@ -55,23 +55,21 @@ func BaseInmemStorage(t *testing.T, minimalSlashingData bool, walletType core.Wa
 
 	// base highest att.
 	if minimalSlashingData {
-		err = store.SaveHighestAttestation(acc.ValidatorPublicKey(), &eth.AttestationData{
-			Source: &eth.Checkpoint{
+		err = store.SaveHighestAttestation(acc.ValidatorPublicKey(), &phase0.AttestationData{
+			Source: &phase0.Checkpoint{
 				Epoch: 0,
-				Root:  nil,
+				Root:  [32]byte{},
 			},
-			Target: &eth.Checkpoint{
+			Target: &phase0.Checkpoint{
 				Epoch: 0,
-				Root:  nil,
+				Root:  [32]byte{},
 			},
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		err = store.SaveHighestProposal(acc.ValidatorPublicKey(), &eth.BeaconBlock{
-			Slot: 0,
-		})
+		err = store.SaveHighestProposal(acc.ValidatorPublicKey(), phase0.Slot(1))
 		if err != nil {
 			return nil, err
 		}
