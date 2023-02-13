@@ -71,9 +71,7 @@ func TestSavingProposal(t *testing.T) {
 			require.NotNil(t, proposal)
 
 			// test equal
-			require.NoError(t, err)
-			require.NoError(t, err)
-			require.EqualValues(t, test.proposal, proposal)
+			require.EqualValues(t, test.proposal, *proposal)
 		})
 	}
 }

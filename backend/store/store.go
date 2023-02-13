@@ -112,8 +112,8 @@ func FromInMemoryStoreV2(ctx context.Context, newStorage *inmemory.InMemStore, e
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestProposal != 0 {
-			if err := hashicorpStore.SaveHighestProposal(newAccount.ValidatorPublicKey(), highestProposal); err != nil {
+		if highestProposal != nil {
+			if err := hashicorpStore.SaveHighestProposal(newAccount.ValidatorPublicKey(), *highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}
 		}
@@ -194,8 +194,8 @@ func FromInMemoryStore(ctx context.Context, newStorage *inmemory.InMemStore, exi
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestProposal != 0 {
-			if err := newHashicorpVaultStore.SaveHighestProposal(acc.ValidatorPublicKey(), highestProposal); err != nil {
+		if highestProposal != nil {
+			if err := newHashicorpVaultStore.SaveHighestProposal(acc.ValidatorPublicKey(), *highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}
 		}

@@ -52,6 +52,7 @@ func TestSlashingStorage_Read(t *testing.T) {
 		require.NoError(t, err)
 		require.EqualValues(t, attestationDataSSZ, decodedAttSSZ)
 
-		require.EqualValues(t, proposal, slashingHistory.HighestProposal)
+		require.NotNil(t, slashingHistory.HighestProposal)
+		require.EqualValues(t, proposal, slashingHistory.HighestProposal.Slot)
 	})
 }

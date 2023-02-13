@@ -24,7 +24,11 @@ const (
 // SlashingHistory contains slashing history data.
 type SlashingHistory struct {
 	HighestAttestation *phase0.AttestationData
-	HighestProposal    phase0.Slot
+	HighestProposal    *HighestProposal
+}
+
+type HighestProposal struct {
+	Slot phase0.Slot
 }
 
 func storageSlashingDataPaths(b *backend) []*framework.Path {
@@ -130,19 +134,22 @@ func loadAccountSlashingHistory(storage *store.HashicorpVaultStore, pubKey []byt
 	}()
 
 	// Fetch proposals
-	var proposal phase0.Slot
+	var highestProposal *HighestProposal
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 
-		var err error
-		proposal, err = storage.RetrieveHighestProposal(pubKey)
+		proposal, err := storage.RetrieveHighestProposal(pubKey)
 		if err != nil {
 			errs[1] = errors.Wrap(err, "failed to retrieve highest proposal")
 			return
 		}
-		if proposal == 0 {
+		if proposal == nil {
 			errs[1] = errors.Wrap(err, "highest proposal is nil")
+		} else {
+			highestProposal = &HighestProposal{
+				Slot: *proposal,
+			}
 		}
 	}()
 
@@ -156,7 +163,7 @@ func loadAccountSlashingHistory(storage *store.HashicorpVaultStore, pubKey []byt
 
 	slashingHistoryEncoded, err := json.Marshal(SlashingHistory{
 		HighestAttestation: highestAtt,
-		HighestProposal:    proposal,
+		HighestProposal:    highestProposal,
 	})
 	if err != nil {
 		return "", errors.Wrap(err, "failed to marshal slashing history")

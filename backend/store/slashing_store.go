@@ -80,24 +80,24 @@ func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot phase0
 }
 
 // RetrieveHighestProposal implements Storage interface.
-func (store *HashicorpVaultStore) RetrieveHighestProposal(pubKey []byte) (phase0.Slot, error) {
+func (store *HashicorpVaultStore) RetrieveHighestProposal(pubKey []byte) (*phase0.Slot, error) {
 	if pubKey == nil {
-		return 0, nil
+		return nil, nil
 	}
 
 	path := fmt.Sprintf(WalletHighestProposalsBase, store.identifierFromKey(pubKey))
 	entry, err := store.storage.Get(store.ctx, path)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	// Return nothing if there is no record
 	if entry == nil {
-		return 0, nil
+		return nil, nil
 	}
 
-	ret := ssz.UnmarshallUint64(entry.Value)
-	return phase0.Slot(ret), nil
+	ret := phase0.Slot(ssz.UnmarshallUint64(entry.Value))
+	return &ret, nil
 }
 
 func (store *HashicorpVaultStore) identifierFromKey(key []byte) string {
