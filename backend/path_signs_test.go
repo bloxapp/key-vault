@@ -183,7 +183,7 @@ func TestSignRegistration(t *testing.T) {
 
 	t.Run("Sign validator registration", func(t *testing.T) {
 		validatorRegistration := &eth2apiv1.ValidatorRegistration{}
-		jsonData := []byte(`{"fee_recipient":"0x000102030405060708090a0b0c0d0e0f10111213","gas_limit":"100","timestamp":"100","pubkey":"0x95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf"}`)
+		jsonData := []byte(`{"fee_recipient":"0x9831eef7a86c19e32becdad091c1dbc974cf452a","gas_limit":"123456","timestamp":"1658313712","pubkey":"0x95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf"}`)
 		err := json.Unmarshal(jsonData, validatorRegistration)
 		require.NoError(t, err)
 
@@ -213,7 +213,7 @@ func TestSignRegistration(t *testing.T) {
 		}
 		resp, err := b.HandleRequest(context.Background(), req)
 		require.Nil(t, err)
-		require.Equal(t, "a025bfab2f2fb95ed990235889c8b7693c4ca5bd4a5e772d7a2bf02de412dc029a61b491902528da433b1180dfbb18250ff056f4cb67d6be6f50f76ec655539d77ef68bf9fbcb0c5f0c56b9c8c0ce829e5deb79270ce8fd5da593f67b006b7de", resp.Data["signature"])
+		require.Equal(t, "ac1694a323372f7e40e5366d5ceb5167f23557c6415bdbab6e26f62f10de42b7e979238c6c00124846af6fd3d804961e084ba1ccd5280521fb75d81baf9ccac2450df00c7c749b711cdeb0dd5b9ffa0d7738369d25196ea839557377f3a7b356", resp.Data["signature"])
 	})
 }
 

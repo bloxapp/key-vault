@@ -69,7 +69,8 @@ func BaseInmemStorage(t *testing.T, minimalSlashingData bool, walletType core.Wa
 			return nil, err
 		}
 
-		err = store.SaveHighestProposal(acc.ValidatorPublicKey(), phase0.Slot(1))
+		highestProposal := phase0.Slot(0)
+		err = store.SaveHighestProposal(acc.ValidatorPublicKey(), &highestProposal)
 		if err != nil {
 			return nil, err
 		}

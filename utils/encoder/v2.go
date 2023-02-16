@@ -2,7 +2,6 @@ package encoder
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	ssz "github.com/ferranbt/fastssz"
@@ -25,8 +24,7 @@ func (l *V2) Encode(obj interface{}) ([]byte, error) {
 	case *phase0.AttestationData:
 		return t.MarshalSSZ()
 	case phase0.Slot:
-		var data []byte
-		return ssz.MarshalUint64(data, uint64(t)), nil
+		return ssz.MarshalUint64(nil, uint64(t)), nil
 	case *models.SignRequest:
 		return encodeSignRequest(t)
 	}
@@ -38,9 +36,6 @@ func (l *V2) Decode(data []byte, v interface{}) error {
 	switch t := v.(type) {
 	case *phase0.AttestationData:
 		return t.UnmarshalSSZ(data)
-	case phase0.Slot:
-		slot := ssz.UnmarshallUint64(data)
-		fmt.Println(slot)
 	case *models.SignRequest:
 		return decodeSignRequest(data, t)
 	}

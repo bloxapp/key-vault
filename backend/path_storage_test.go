@@ -67,7 +67,8 @@ func baseInmemStorage() (*inmemory.InMemStore, uuid.UUID, error) {
 		return nil, uuid.UUID{}, err
 	}
 
-	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), phase0.Slot(1))
+	highestProposal := phase0.Slot(0)
+	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), &highestProposal)
 	if err != nil {
 		return nil, uuid.UUID{}, err
 	}

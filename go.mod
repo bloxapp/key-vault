@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/attestantio/go-eth2-client v0.15.2
-	github.com/bloxapp/eth2-key-manager v1.2.1-0.20230213102829-224b716fd8c2
+	github.com/bloxapp/eth2-key-manager v1.2.1-0.20230216092052-697e3c626f30
 	github.com/docker/docker v17.12.0-ce-rc1.0.20210128214336-420b1d36250f+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ethereum/go-ethereum v1.10.23
@@ -30,7 +30,6 @@ require (
 	github.com/Microsoft/hcsshim v0.8.9 // indirect
 	github.com/armon/go-metrics v0.3.3 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
-	github.com/bloxapp/ssv-spec v0.2.8-0.20230116160450-3526f3880cb9 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.1 // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/containerd/containerd v1.3.4 // indirect

@@ -61,17 +61,17 @@ func (store *HashicorpVaultStore) RetrieveHighestAttestation(pubKey []byte) (*ph
 }
 
 // SaveHighestProposal implements Storage interface.
-func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot phase0.Slot) error {
+func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot *phase0.Slot) error {
 	if pubKey == nil {
 		return errors.Errorf("pubKey must not be nil")
 	}
 
-	if slot == 0 {
-		return errors.Errorf("proposal slot must not be 0")
+	if slot == nil {
+		return errors.Errorf("proposal slot must not be nil")
 	}
 
 	path := fmt.Sprintf(WalletHighestProposalsBase, store.identifierFromKey(pubKey))
-	data, err := store.encoder.Encode(slot)
+	data, err := store.encoder.Encode(*slot)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal proposal request")
 	}
