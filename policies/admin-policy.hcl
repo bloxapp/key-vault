@@ -32,3 +32,8 @@ path "ethereum/+/storage/slashing" {
 path "ethereum/+/config" {
   capabilities = ["create", "update", "read"]
 }
+
+# Ability to sign voluntary exit ("create")
+path "ethereum/+/accounts/sign-voluntary-exit" {
+  capabilities = ["create"]
+}

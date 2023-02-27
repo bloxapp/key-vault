@@ -41,6 +41,7 @@ func newBackend(version string, logger *logrus.Logger) *backend {
 			storageSlashingDataPaths(b),
 			accountsPaths(b),
 			signsPaths(b),
+			signsVoluntaryExitPath(b),
 			configPaths(b),
 		),
 		PathsSpecial: &logical.Paths{

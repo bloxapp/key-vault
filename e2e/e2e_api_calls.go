@@ -131,6 +131,15 @@ func (setup *BaseSetup) Sign(endpoint string, data map[string]interface{}, netwo
 		return nil, NewServiceError(retObj)
 	}
 
+	if endpoint == "sign-voluntary-exit" {
+		respObj := retObj["data"].(map[string]interface{})
+		marshal, err := json.Marshal(respObj)
+		if err != nil {
+			return nil, err
+		}
+		return marshal, nil
+	}
+
 	sigStr := retObj["data"].(map[string]interface{})["signature"].(string)
 	ret, err := hex.DecodeString(sigStr)
 	if err != nil {

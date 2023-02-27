@@ -45,6 +45,10 @@ var tests = []E2E{
 
 	// Storage tests
 	&SlashingStorageRead{},
+
+	// Voluntary Exit tests
+	&VoluntaryExitSigning{},
+	&VoluntaryExitSigningAccountNotFound{},
 }
 
 func TestE2E(t *testing.T) {

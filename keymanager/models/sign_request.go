@@ -79,10 +79,10 @@ func (x *SignRequest) GetAggregateAttestationAndProof() *phase0.AggregateAndProo
 	return nil
 }
 
-// GetExit return VoluntaryExit
-func (x *SignRequest) GetExit() *phase0.VoluntaryExit {
-	if x, ok := x.GetObject().(*SignRequestExit); ok {
-		return x.Exit
+// GetVoluntaryExit return VoluntaryExit
+func (x *SignRequest) GetVoluntaryExit() *phase0.VoluntaryExit {
+	if x, ok := x.GetObject().(*SignRequestVoluntaryExit); ok {
+		return x.VoluntaryExit
 	}
 	return nil
 }

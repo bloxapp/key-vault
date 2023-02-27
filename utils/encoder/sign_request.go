@@ -162,6 +162,13 @@ func encodeSignRequest(sr *models.SignRequest) ([]byte, error) {
 		toEncode.Data = byts
 		toEncode.ObjectType = reflect.TypeOf(t).String()
 		toEncode.Version = uint64(t.VersionedValidatorRegistration.Version)
+	case *models.SignRequestVoluntaryExit:
+		byts, err := t.VoluntaryExit.MarshalSSZ()
+		if err != nil {
+			return nil, err
+		}
+		toEncode.Data = byts
+		toEncode.ObjectType = reflect.TypeOf(t).String()
 	default:
 		return nil, errors.New("sign request unknown object type")
 	}
@@ -292,6 +299,12 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 		}
 
 		sr.Object = &models.SignRequestRegistration{VersionedValidatorRegistration: data}
+	case "*models.SignRequestVoluntaryExit":
+		data := &phase0.VoluntaryExit{}
+		if err := data.UnmarshalSSZ(toDecode.Data); err != nil {
+			return err
+		}
+		sr.Object = &models.SignRequestVoluntaryExit{VoluntaryExit: data}
 	default:
 		return errors.New("sign request unknown object type")
 	}

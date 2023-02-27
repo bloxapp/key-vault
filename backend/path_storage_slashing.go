@@ -27,6 +27,7 @@ type SlashingHistory struct {
 	HighestProposal    *HighestProposal
 }
 
+// HighestProposal contains highest proposal data.
 type HighestProposal struct {
 	Slot phase0.Slot
 }
