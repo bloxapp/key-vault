@@ -62,7 +62,7 @@ func TestSavingProposal(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// save
-			err := storage.SaveHighestProposal(test.account.ValidatorPublicKey(), &test.proposal)
+			err := storage.SaveHighestProposal(test.account.ValidatorPublicKey(), test.proposal)
 			require.NoError(t, err)
 
 			// fetch
