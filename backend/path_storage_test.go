@@ -67,8 +67,8 @@ func baseInmemStorage() (*inmemory.InMemStore, uuid.UUID, error) {
 		return nil, uuid.UUID{}, err
 	}
 
-	highestProposal := phase0.Slot(0)
-	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), &highestProposal)
+	highestProposal := phase0.Slot(1)
+	err = inMemStore.SaveHighestProposal(acc.ValidatorPublicKey(), highestProposal)
 	if err != nil {
 		return nil, uuid.UUID{}, err
 	}
@@ -124,8 +124,9 @@ func TestStorage(t *testing.T) {
 		acc, err := wallet.AccountByPublicKey("95087182937f6982ae99f9b06bd116f463f414513032e33a3d175d9662eddf162101fcf6ca2a9fedaded74b8047c5dcf")
 		require.NoError(t, err)
 
-		att, err := vault.RetrieveHighestAttestation(acc.ValidatorPublicKey())
+		att, found, err := vault.RetrieveHighestAttestation(acc.ValidatorPublicKey())
 		require.NoError(t, err)
+		require.True(t, found)
 		require.NotNil(t, att)
 		require.EqualValues(t, att.Source.Epoch, 0)
 		require.EqualValues(t, att.Target.Epoch, 0)

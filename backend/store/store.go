@@ -97,22 +97,22 @@ func FromInMemoryStoreV2(ctx context.Context, newStorage *inmemory.InMemStore, e
 		}
 
 		// Save highest attestation
-		highestAtt, err := newStorage.RetrieveHighestAttestation(newAccount.ValidatorPublicKey())
+		highestAtt, found, err := newStorage.RetrieveHighestAttestation(newAccount.ValidatorPublicKey())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestAtt != nil {
+		if found && highestAtt != nil {
 			if err := hashicorpStore.SaveHighestAttestation(newAccount.ValidatorPublicKey(), highestAtt); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest attestation")
 			}
 		}
 
 		// Save highest proposal
-		highestProposal, err := newStorage.RetrieveHighestProposal(newAccount.ValidatorPublicKey())
+		highestProposal, found, err := newStorage.RetrieveHighestProposal(newAccount.ValidatorPublicKey())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestProposal != nil {
+		if found && highestProposal != 0 {
 			if err := hashicorpStore.SaveHighestProposal(newAccount.ValidatorPublicKey(), highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}
@@ -176,11 +176,11 @@ func FromInMemoryStore(ctx context.Context, newStorage *inmemory.InMemStore, exi
 
 	// save highest att.
 	for _, acc := range wallet.Accounts() {
-		highestAtt, err := newStorage.RetrieveHighestAttestation(acc.ValidatorPublicKey())
+		highestAtt, found, err := newStorage.RetrieveHighestAttestation(acc.ValidatorPublicKey())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestAtt != nil {
+		if found && highestAtt != nil {
 			if err := newHashicorpVaultStore.SaveHighestAttestation(acc.ValidatorPublicKey(), highestAtt); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest attestation")
 			}
@@ -190,11 +190,11 @@ func FromInMemoryStore(ctx context.Context, newStorage *inmemory.InMemStore, exi
 	// save highest proposal.
 	for _, acc := range wallet.Accounts() {
 		// Save highest proposal
-		highestProposal, err := newStorage.RetrieveHighestProposal(acc.ValidatorPublicKey())
+		highestProposal, found, err := newStorage.RetrieveHighestProposal(acc.ValidatorPublicKey())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to retrieve highest attestation")
 		}
-		if highestProposal != nil {
+		if found && highestProposal != 0 {
 			if err := newHashicorpVaultStore.SaveHighestProposal(acc.ValidatorPublicKey(), highestProposal); err != nil {
 				return nil, errors.Wrap(err, "failed to save highest proposal")
 			}

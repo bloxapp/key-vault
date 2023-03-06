@@ -18,8 +18,12 @@ const (
 
 // SaveHighestAttestation saves highest attestation
 func (store *HashicorpVaultStore) SaveHighestAttestation(pubKey []byte, attestation *phase0.AttestationData) error {
-	if attestation == nil || pubKey == nil {
-		return errors.Errorf("pubKey and attestation must not be nil")
+	if pubKey == nil {
+		return errors.New("pubKey must not be nil")
+	}
+
+	if attestation == nil {
+		return errors.New("attestation data could not be nil")
 	}
 
 	path := fmt.Sprintf(WalletHighestAttestationPath+"%s", store.identifierFromKey(pubKey))
@@ -36,42 +40,42 @@ func (store *HashicorpVaultStore) SaveHighestAttestation(pubKey []byte, attestat
 }
 
 // RetrieveHighestAttestation retrieves highest attestation
-func (store *HashicorpVaultStore) RetrieveHighestAttestation(pubKey []byte) (*phase0.AttestationData, error) {
+func (store *HashicorpVaultStore) RetrieveHighestAttestation(pubKey []byte) (*phase0.AttestationData, bool, error) {
 	if pubKey == nil {
-		return nil, nil
+		return nil, false, errors.New("public key could not be nil")
 	}
 
 	path := fmt.Sprintf(WalletHighestAttestationPath+"%s", store.identifierFromKey(pubKey))
 	entry, err := store.storage.Get(store.ctx, path)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	// Return nothing if there is no record
 	if entry == nil {
-		return nil, nil
+		return nil, false, nil
 	}
 
 	ret := &phase0.AttestationData{}
 	if err := store.encoder.Decode(entry.Value, ret); err != nil {
-		return nil, errors.Wrapf(err, "failed to unmarshal attestation (size %d) - (hex: %s)", len(entry.Value), hex.EncodeToString(entry.Value))
+		return nil, false, errors.Wrapf(err, "failed to unmarshal attestation (size %d) - (hex: %s)", len(entry.Value), hex.EncodeToString(entry.Value))
 	}
 
-	return ret, nil
+	return ret, true, nil
 }
 
 // SaveHighestProposal implements Storage interface.
-func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot *phase0.Slot) error {
+func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot phase0.Slot) error {
 	if pubKey == nil {
-		return errors.Errorf("pubKey must not be nil")
+		return errors.New("pubKey must not be nil")
 	}
 
-	if slot == nil {
-		return errors.Errorf("proposal slot must not be nil")
+	if slot == 0 {
+		return errors.New("invalid proposal slot, slot could not be 0")
 	}
 
 	path := fmt.Sprintf(WalletHighestProposalsBase, store.identifierFromKey(pubKey))
-	data, err := store.encoder.Encode(*slot)
+	data, err := store.encoder.Encode(slot)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal proposal request")
 	}
@@ -84,24 +88,23 @@ func (store *HashicorpVaultStore) SaveHighestProposal(pubKey []byte, slot *phase
 }
 
 // RetrieveHighestProposal implements Storage interface.
-func (store *HashicorpVaultStore) RetrieveHighestProposal(pubKey []byte) (*phase0.Slot, error) {
+func (store *HashicorpVaultStore) RetrieveHighestProposal(pubKey []byte) (phase0.Slot, bool, error) {
 	if pubKey == nil {
-		return nil, nil
+		return 0, false, errors.New("public key could not be nil")
 	}
 
 	path := fmt.Sprintf(WalletHighestProposalsBase, store.identifierFromKey(pubKey))
 	entry, err := store.storage.Get(store.ctx, path)
 	if err != nil {
-		return nil, err
+		return 0, false, err
 	}
 
 	// Return nothing if there is no record
 	if entry == nil {
-		return nil, nil
+		return 0, false, nil
 	}
 
-	ret := phase0.Slot(ssz.UnmarshallUint64(entry.Value))
-	return &ret, nil
+	return phase0.Slot(ssz.UnmarshallUint64(entry.Value)), true, nil
 }
 
 func (store *HashicorpVaultStore) identifierFromKey(key []byte) string {

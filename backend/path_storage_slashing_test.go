@@ -26,7 +26,7 @@ func TestSlashingStorage_Read(t *testing.T) {
 	attestation := &phase0.AttestationData{}
 	require.NoError(t, attestation.UnmarshalSSZ(attestationDataSSZ))
 
-	proposal := phase0.Slot(0)
+	proposal := phase0.Slot(1)
 
 	t.Run("successfully read slashing history", func(t *testing.T) {
 		ctx := context.Background()
@@ -36,7 +36,7 @@ func TestSlashingStorage_Read(t *testing.T) {
 		require.NoError(t, err)
 		err = newStore.SaveHighestAttestation(account.ValidatorPublicKey(), attestation)
 		require.NoError(t, err)
-		err = newStore.SaveHighestProposal(account.ValidatorPublicKey(), &proposal)
+		err = newStore.SaveHighestProposal(account.ValidatorPublicKey(), proposal)
 		require.NoError(t, err)
 
 		res, err := b.HandleRequest(ctx, req)

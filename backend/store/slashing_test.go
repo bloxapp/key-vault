@@ -62,16 +62,17 @@ func TestSavingProposal(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// save
-			err := storage.SaveHighestProposal(test.account.ValidatorPublicKey(), &test.proposal)
+			err := storage.SaveHighestProposal(test.account.ValidatorPublicKey(), test.proposal)
 			require.NoError(t, err)
 
 			// fetch
-			proposal, err := storage.RetrieveHighestProposal(test.account.ValidatorPublicKey())
+			proposal, found, err := storage.RetrieveHighestProposal(test.account.ValidatorPublicKey())
 			require.NoError(t, err)
+			require.True(t, found)
 			require.NotNil(t, proposal)
 
 			// test equal
-			require.EqualValues(t, test.proposal, *proposal)
+			require.EqualValues(t, test.proposal, proposal)
 		})
 	}
 }
@@ -132,8 +133,9 @@ func TestSavingAttestation(t *testing.T) {
 			require.NoError(t, err)
 
 			// fetch
-			att, err := storage.RetrieveHighestAttestation(test.account.ValidatorPublicKey())
+			att, found, err := storage.RetrieveHighestAttestation(test.account.ValidatorPublicKey())
 			require.NoError(t, err)
+			require.True(t, found)
 			require.NotNil(t, att)
 
 			// test equal
@@ -202,8 +204,9 @@ func TestSavingHighestAttestation(t *testing.T) {
 			require.NoError(t, err)
 
 			// fetch
-			att, err := storage.RetrieveHighestAttestation(test.account.ValidatorPublicKey())
+			att, found, err := storage.RetrieveHighestAttestation(test.account.ValidatorPublicKey())
 			require.NoError(t, err)
+			require.True(t, found)
 			require.NotNil(t, att)
 
 			// test equal

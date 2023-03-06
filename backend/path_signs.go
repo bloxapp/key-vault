@@ -120,7 +120,7 @@ func (b *backend) pathSign(ctx context.Context, req *logical.Request, data *fram
 			}
 			sig, _, sigErr = simpleSigner.SignRegistration(t.VersionedValidatorRegistration, signReq.SignatureDomain, signReq.PublicKey)
 		default:
-			return errors.Errorf("sign request: not supported")
+			return errors.New("sign request: not supported")
 		}
 
 		// Some tests rely on the error message returned by SignBeaconBlock,

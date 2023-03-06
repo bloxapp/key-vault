@@ -137,7 +137,7 @@ func (b *backend) readConfig(ctx context.Context, s logical.Storage) (*Config, e
 	}
 
 	if entry == nil {
-		return nil, errors.Errorf("the plugin has not been configured yet")
+		return nil, errors.New("the plugin has not been configured yet")
 	}
 
 	var result Config

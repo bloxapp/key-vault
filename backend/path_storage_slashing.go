@@ -123,14 +123,19 @@ func loadAccountSlashingHistory(storage *store.HashicorpVaultStore, pubKey []byt
 		defer wg.Done()
 
 		var err error
-		highestAtt, err = storage.RetrieveHighestAttestation(pubKey)
+		highestAttestation, found, err := storage.RetrieveHighestAttestation(pubKey)
 		if err != nil {
 			errs[0] = errors.Wrap(err, "failed to retrieve highest attestation")
 			return
 		}
-		if highestAtt == nil {
-			errs[0] = errors.Errorf("highest attestation is nil")
+		if !found {
+			errs[0] = errors.New("highest attestation not found")
+			return
 		}
+		if highestAttestation == nil {
+			errs[0] = errors.New("highest attestation is nil")
+		}
+		highestAtt = highestAttestation
 	}()
 
 	// Fetch proposals
@@ -139,16 +144,20 @@ func loadAccountSlashingHistory(storage *store.HashicorpVaultStore, pubKey []byt
 	go func() {
 		defer wg.Done()
 
-		proposal, err := storage.RetrieveHighestProposal(pubKey)
+		proposal, found, err := storage.RetrieveHighestProposal(pubKey)
 		if err != nil {
 			errs[1] = errors.Wrap(err, "failed to retrieve highest proposal")
 			return
 		}
-		if proposal == nil {
-			errs[1] = errors.Wrap(err, "highest proposal is nil")
+		if !found {
+			errs[1] = errors.New("highest proposal not found")
+			return
+		}
+		if proposal == 0 {
+			errs[1] = errors.Wrap(err, "highest proposal is 0")
 		} else {
 			highestProposal = &HighestProposal{
-				Slot: *proposal,
+				Slot: proposal,
 			}
 		}
 	}()
