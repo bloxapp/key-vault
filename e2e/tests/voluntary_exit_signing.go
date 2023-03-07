@@ -2,7 +2,6 @@ package tests
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"testing"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -55,11 +54,9 @@ func (test *VoluntaryExitSigning) Run(t *testing.T) {
 	// Send sign voluntary exit request
 	req, err := test.serializedReq(pubKeyBytes, nil, domain, voluntaryExit)
 	require.NoError(t, err)
-	signedVoluntaryExitByts, err := setup.Sign("sign-voluntary-exit", req, core.PraterNetwork)
+	sig, err := setup.Sign("sign-voluntary-exit", req, core.PraterNetwork)
 	require.NoError(t, err)
-	var signedVoluntaryExit *phase0.SignedVoluntaryExit
-	require.NoError(t, json.Unmarshal(signedVoluntaryExitByts, &signedVoluntaryExit))
-	require.EqualValues(t, res, signedVoluntaryExit.Signature[:])
+	require.EqualValues(t, res, sig)
 }
 
 func (test *VoluntaryExitSigning) serializedReq(pk, root []byte, domain [32]byte, voluntaryExit *phase0.VoluntaryExit) (map[string]interface{}, error) {

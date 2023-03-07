@@ -3,9 +3,7 @@ package backend
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 
-	"github.com/attestantio/go-eth2-client/spec/phase0"
 	vault "github.com/bloxapp/eth2-key-manager"
 	"github.com/bloxapp/eth2-key-manager/signer"
 	"github.com/hashicorp/vault/sdk/framework"
@@ -64,7 +62,7 @@ func (b *backend) pathSignVoluntaryExit(ctx context.Context, req *logical.Reques
 		return nil, errors.Wrap(err, "failed to unmarshal sign request")
 	}
 
-	var resp map[string]interface{}
+	var sig []byte
 	err = b.lock(signReq.GetPublicKey(), func() error {
 		// bring up KeyVault and wallet
 		storage := store.NewHashicorpVaultStore(ctx, req.Storage, config.Network)
@@ -91,20 +89,7 @@ func (b *backend) pathSignVoluntaryExit(ctx context.Context, req *logical.Reques
 		if !ok {
 			return errors.New("failed to cast to sign request voluntary exit")
 		}
-		sig, _, sigErr := simpleSigner.SignVoluntaryExit(t.VoluntaryExit, signReq.SignatureDomain, signReq.PublicKey)
-		signReqVoluntaryExit := &phase0.SignedVoluntaryExit{
-			Message: t.VoluntaryExit,
-		}
-		copy(signReqVoluntaryExit.Signature[:], sig)
-
-		marshalJSON, err := signReqVoluntaryExit.MarshalJSON()
-		if err != nil {
-			return errors.Wrap(err, "failed to marshal signed voluntary exit")
-		}
-		err = json.Unmarshal(marshalJSON, &resp)
-		if err != nil {
-			return errors.Wrap(err, "failed to unmarshal signed voluntary exit")
-		}
+		sig, _, sigErr = simpleSigner.SignVoluntaryExit(t.VoluntaryExit, signReq.SignatureDomain, signReq.PublicKey)
 
 		return sigErr
 	})
@@ -113,6 +98,8 @@ func (b *backend) pathSignVoluntaryExit(ctx context.Context, req *logical.Reques
 	}
 
 	return &logical.Response{
-		Data: resp,
+		Data: map[string]interface{}{
+			"signature": hex.EncodeToString(sig),
+		},
 	}, nil
 }

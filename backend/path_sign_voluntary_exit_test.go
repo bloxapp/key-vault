@@ -3,7 +3,6 @@ package backend
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"testing"
 
 	"github.com/attestantio/go-eth2-client/spec/phase0"
@@ -52,11 +51,6 @@ func TestVoluntaryExit(t *testing.T) {
 		resp, err := b.HandleRequest(context.Background(), req)
 		require.NoError(t, err)
 		require.NotNil(t, resp.Data)
-
-		var signedVoluntaryExit *phase0.SignedVoluntaryExit
-		marshal, err := json.Marshal(resp.Data)
-		require.NoError(t, err)
-		require.NoError(t, json.Unmarshal(marshal, &signedVoluntaryExit))
 	})
 
 	t.Run("Sign voluntary exit of unknown account", func(t *testing.T) {
