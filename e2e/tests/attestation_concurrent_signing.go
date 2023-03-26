@@ -41,6 +41,7 @@ func (test *AttestationConcurrentSigning) Run(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	signedCnt := int64(0)
 	for i := 0; i < 20; i++ {
+		wg.Add(1)
 		t.Run("concurrent signing "+strconv.Itoa(i), func(t *testing.T) {
 			go test.runSlashableAttestation(t, &signedCnt, wg, setup, pubKey)
 		})
@@ -51,7 +52,6 @@ func (test *AttestationConcurrentSigning) Run(t *testing.T) {
 
 // will return no error if trying to sign a slashable attestation will not work
 func (test *AttestationConcurrentSigning) runSlashableAttestation(t *testing.T, cnt *int64, wg *sync.WaitGroup, setup *e2e.BaseSetup, pubKey []byte) {
-	wg.Add(1)
 	defer wg.Done()
 
 	randomCommittee := func() phase0.CommitteeIndex {
