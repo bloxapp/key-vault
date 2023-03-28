@@ -5,7 +5,6 @@ on:
     branches:
       - "master"
       - "stage"
-      - "os/voluntary-exit-github-workflows"
   pull_request:
     branches:
       - "**"
