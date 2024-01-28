@@ -8,10 +8,12 @@ import (
 	eth2apiv1 "github.com/attestantio/go-eth2-client/api/v1"
 	apiv1bellatrix "github.com/attestantio/go-eth2-client/api/v1/bellatrix"
 	apiv1capella "github.com/attestantio/go-eth2-client/api/v1/capella"
+	apiv1deneb "github.com/attestantio/go-eth2-client/api/v1/deneb"
 	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/attestantio/go-eth2-client/spec/altair"
 	"github.com/attestantio/go-eth2-client/spec/bellatrix"
 	"github.com/attestantio/go-eth2-client/spec/capella"
+	"github.com/attestantio/go-eth2-client/spec/deneb"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	ssz "github.com/ferranbt/fastssz"
 	"github.com/pkg/errors"
@@ -72,6 +74,14 @@ func encodeSignRequest(sr *models.SignRequest) ([]byte, error) {
 				return nil, errors.New("no capella block")
 			}
 			byts, err = t.VersionedBeaconBlock.Capella.MarshalSSZ()
+		case spec.DataVersionDeneb:
+			if t.VersionedBeaconBlock.Deneb == nil {
+				return nil, errors.New("no deneb block contents")
+			}
+			if t.VersionedBeaconBlock.Deneb.Block == nil {
+				return nil, errors.New("no deneb block")
+			}
+			byts, err = t.VersionedBeaconBlock.Deneb.Block.MarshalSSZ()
 		default:
 			return nil, errors.Errorf("unsupported block version %d", t.VersionedBeaconBlock.Version)
 		}
@@ -96,6 +106,11 @@ func encodeSignRequest(sr *models.SignRequest) ([]byte, error) {
 				return nil, errors.New("no capella blinded block")
 			}
 			byts, err = t.VersionedBlindedBeaconBlock.Capella.MarshalSSZ()
+		case spec.DataVersionDeneb:
+			if t.VersionedBlindedBeaconBlock.Deneb == nil {
+				return nil, errors.New("no deneb blinded block")
+			}
+			byts, err = t.VersionedBlindedBeaconBlock.Deneb.MarshalSSZ()
 		default:
 			return nil, errors.Errorf("unsupported blinded block version %d", t.VersionedBlindedBeaconBlock.Version)
 		}
@@ -198,7 +213,7 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 		}
 		sr.Object = &models.SignRequestAttestationData{AttestationData: data}
 	case "*models.SignRequestBlock":
-		data := &spec.VersionedBeaconBlock{}
+		data := &api.VersionedProposal{}
 
 		switch spec.DataVersion(toDecode.Version) {
 		case spec.DataVersionPhase0:
@@ -229,13 +244,22 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 			}
 			data.Version = spec.DataVersionCapella
 			data.Capella = &blk
+		case spec.DataVersionDeneb:
+			var blk deneb.BeaconBlock
+			if err := blk.UnmarshalSSZ(toDecode.Data); err != nil {
+				return err
+			}
+			data.Version = spec.DataVersionDeneb
+			data.Deneb = &apiv1deneb.BlockContents{
+				Block: &blk,
+			}
 		default:
 			return errors.Errorf("unsupported block version %d", toDecode.Version)
 		}
 
 		sr.Object = &models.SignRequestBlock{VersionedBeaconBlock: data}
 	case "*models.SignRequestBlindedBlock":
-		data := &api.VersionedBlindedBeaconBlock{}
+		data := &api.VersionedBlindedProposal{}
 
 		switch spec.DataVersion(toDecode.Version) {
 		case spec.DataVersionBellatrix:
@@ -252,6 +276,13 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 			}
 			data.Version = spec.DataVersionCapella
 			data.Capella = &blk
+		case spec.DataVersionDeneb:
+			var blk apiv1deneb.BlindedBeaconBlock
+			if err := blk.UnmarshalSSZ(toDecode.Data); err != nil {
+				return err
+			}
+			data.Version = spec.DataVersionDeneb
+			data.Deneb = &blk
 		default:
 			return errors.Errorf("unsupported blinded block version %d", toDecode.Version)
 		}

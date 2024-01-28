@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/attestantio/go-eth2-client/api"
-	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/attestantio/go-eth2-client/spec/altair"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 )
@@ -56,7 +55,7 @@ func (x *SignRequest) GetObject() ISignObject {
 }
 
 // GetBlock return versioned block
-func (x *SignRequest) GetBlock() *spec.VersionedBeaconBlock {
+func (x *SignRequest) GetBlock() *api.VersionedProposal {
 	if x, ok := x.GetObject().(*SignRequestBlock); ok {
 		return x.VersionedBeaconBlock
 	}
@@ -104,7 +103,7 @@ func (x *SignRequest) GetEpoch() phase0.Epoch {
 }
 
 // GetBlindedBlock return a versioned blinded block block.
-func (x *SignRequest) GetBlindedBlock() *api.VersionedBlindedBeaconBlock {
+func (x *SignRequest) GetBlindedBlock() *api.VersionedBlindedProposal {
 	if x, ok := x.GetObject().(*SignRequestBlindedBlock); ok {
 		return x.VersionedBlindedBeaconBlock
 	}
