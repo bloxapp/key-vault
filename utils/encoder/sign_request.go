@@ -76,7 +76,7 @@ func encodeSignRequest(sr *models.SignRequest) ([]byte, error) {
 			byts, err = t.VersionedBeaconBlock.Capella.MarshalSSZ()
 		case spec.DataVersionDeneb:
 			if t.VersionedBeaconBlock.Deneb == nil {
-				return nil, errors.New("no deneb block contents")
+				return nil, errors.New("no deneb block")
 			}
 			byts, err = t.VersionedBeaconBlock.Deneb.MarshalSSZ()
 		default:
