@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
@@ -65,7 +65,7 @@ func (test *ProposalConcurrentSigning) runSlashableProposal(t *testing.T, cnt *i
 	}
 }
 
-func (test *ProposalConcurrentSigning) serializedReq(pk, root []byte, domain [32]byte, blk *api.VersionedProposal) (map[string]interface{}, error) {
+func (test *ProposalConcurrentSigning) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,

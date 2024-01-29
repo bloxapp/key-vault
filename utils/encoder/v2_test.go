@@ -60,7 +60,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Phase0:  blk,
 				Version: spec.DataVersionPhase0,
 			}},
@@ -86,7 +86,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionAltair,
 				Altair:  blk,
 			}},
@@ -112,7 +112,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version:   spec.DataVersionBellatrix,
 				Bellatrix: blk,
 			}},
@@ -138,7 +138,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 				Version:   spec.DataVersionBellatrix,
 				Bellatrix: blk,
 			}},
@@ -164,7 +164,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionCapella,
 				Capella: blk,
 			}},
@@ -190,7 +190,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 				Version: spec.DataVersionCapella,
 				Capella: blk,
 			}},
@@ -220,11 +220,9 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionDeneb,
-				Deneb: &apiv1deneb.BlockContents{
-					Block: blk,
-				},
+				Deneb:   blk,
 			}},
 		}
 
@@ -234,7 +232,7 @@ func TestV2(t *testing.T) {
 
 		decoded := &models.SignRequest{}
 		require.NoError(t, enc.Decode(byts, decoded))
-		byts, err = decoded.GetBlock().Deneb.Block.MarshalSSZ()
+		byts, err = decoded.GetBlock().Deneb.MarshalSSZ()
 		require.NoError(t, err)
 		require.EqualValues(t, sszBytes, byts)
 		require.EqualValues(t, []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1}, decoded.PublicKey)
@@ -252,7 +250,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+			Object: &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 				Version: spec.DataVersionDeneb,
 				Deneb:   blk,
 			}},
@@ -278,7 +276,7 @@ func TestV2(t *testing.T) {
 			PublicKey:       []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 1},
 			SigningRoot:     make([]byte, 32),
 			SignatureDomain: [32]byte{},
-			Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionAltair,
 				Altair:  blk,
 			}},

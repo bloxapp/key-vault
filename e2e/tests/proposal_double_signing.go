@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
@@ -54,7 +54,7 @@ func (test *ProposalDoubleSigning) Run(t *testing.T) {
 	require.True(t, protected, err.Error())
 }
 
-func (test *ProposalDoubleSigning) serializedReq(pk, root []byte, domain [32]byte, blk *api.VersionedProposal) (map[string]interface{}, error) {
+func (test *ProposalDoubleSigning) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
@@ -61,7 +61,7 @@ func (test *SlashingStorageRead) Run(t *testing.T) {
 	require.NotEmpty(t, pubKeyHistory)
 }
 
-func (test *SlashingStorageRead) serializedReq(pk, root []byte, domain [32]byte, blk *api.VersionedProposal) (map[string]interface{}, error) {
+func (test *SlashingStorageRead) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,

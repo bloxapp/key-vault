@@ -6,7 +6,7 @@ import (
 
 // SignRequestBlindedBlock struct
 type SignRequestBlindedBlock struct {
-	VersionedBlindedBeaconBlock *api.VersionedBlindedProposal
+	VersionedBlindedBeaconBlock *api.VersionedBlindedBeaconBlock
 }
 
 // isSignRequestObject implement func

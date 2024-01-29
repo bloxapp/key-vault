@@ -1,12 +1,12 @@
 package models
 
 import (
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec"
 )
 
 // SignRequestBlock struct
 type SignRequestBlock struct {
-	VersionedBeaconBlock *api.VersionedProposal
+	VersionedBeaconBlock *spec.VersionedBeaconBlock
 }
 
 // isSignRequestObject implement func

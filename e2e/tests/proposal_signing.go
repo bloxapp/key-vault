@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"testing"
 
-	"github.com/attestantio/go-eth2-client/api"
+	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/bloxapp/eth2-key-manager/signer"
 	slashingprotection "github.com/bloxapp/eth2-key-manager/slashing_protection"
@@ -59,7 +59,7 @@ func (test *ProposalSigning) Run(t *testing.T) {
 	require.Equal(t, res, sig)
 }
 
-func (test *ProposalSigning) serializedReq(pk, root []byte, domain [32]byte, blk *api.VersionedProposal) (map[string]interface{}, error) {
+func (test *ProposalSigning) serializedReq(pk, root []byte, domain [32]byte, blk *spec.VersionedBeaconBlock) (map[string]interface{}, error) {
 	req := &models.SignRequest{
 		PublicKey:       pk,
 		SigningRoot:     root,

@@ -72,7 +72,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			copy(block.Body.Graffiti[:], "10")
 		}
 
-		return &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+		return &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 			Phase0:  block,
 			Version: spec.DataVersionPhase0,
 		}}
@@ -93,7 +93,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			copy(block.Body.Graffiti[:], "10")
 		}
 
-		return &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+		return &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 			Version: spec.DataVersionAltair,
 			Altair:  block,
 		}}
@@ -116,7 +116,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			}
 			copy(block.Body.ExecutionPayload.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
 
-			return &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			return &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version:   spec.DataVersionBellatrix,
 				Bellatrix: block,
 			}}
@@ -142,7 +142,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 		}
 
 		copy(block.Body.ExecutionPayloadHeader.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
-		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 			Version:   spec.DataVersionBellatrix,
 			Bellatrix: block,
 		}}
@@ -165,7 +165,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			}
 			copy(block.Body.ExecutionPayload.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
 
-			return &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			return &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionCapella,
 				Capella: block,
 			}}
@@ -188,7 +188,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 		}
 
 		copy(block.Body.ExecutionPayloadHeader.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
-		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 			Version: spec.DataVersionCapella,
 			Capella: block,
 		}}
@@ -212,11 +212,9 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			}
 			//copy(block.Body.ExecutionPayload.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
 
-			return &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+			return &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 				Version: spec.DataVersionDeneb,
-				Deneb: &apiv1deneb.BlockContents{
-					Block: block,
-				},
+				Deneb:   block,
 			}}
 		}
 
@@ -237,7 +235,7 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 		}
 
 		//copy(block.Body.ExecutionPayloadHeader.FeeRecipient[:], "6a3f3eE924A940ce0d795C5A41A817607e520520")
-		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedProposal{
+		return &models.SignRequestBlindedBlock{VersionedBlindedBeaconBlock: &api.VersionedBlindedBeaconBlock{
 			Version: spec.DataVersionDeneb,
 			Deneb:   block,
 		}}

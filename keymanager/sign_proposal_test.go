@@ -8,7 +8,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/attestantio/go-eth2-client/api"
 	"github.com/attestantio/go-eth2-client/spec"
 	"github.com/attestantio/go-eth2-client/spec/phase0"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -137,7 +136,7 @@ func testRequest(t *testing.T) *models.SignRequest {
 		PublicKey:       _byteArray("a3862121db5914d7272b0b705e6e3c5336b79e316735661873566245207329c30f9a33d4fb5f5857fc6fd0a368186972"),
 		SigningRoot:     nil,
 		SignatureDomain: _byteArray32("0000000081509579e35e84020ad8751eca180b44df470332d3ad17fc6fd52459"),
-		Object: &models.SignRequestBlock{VersionedBeaconBlock: &api.VersionedProposal{
+		Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
 			Phase0:  blk,
 			Version: spec.DataVersionPhase0,
 		}},

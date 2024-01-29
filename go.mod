@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/attestantio/go-eth2-client v0.19.10
-	github.com/bloxapp/eth2-key-manager v1.4.1-0.20240128145605-3d0c621df4e6
+	github.com/bloxapp/eth2-key-manager v1.4.0
 	github.com/docker/docker v17.12.0-ce-rc1.0.20210128214336-420b1d36250f+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/ethereum/go-ethereum v1.10.23

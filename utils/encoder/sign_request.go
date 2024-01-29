@@ -78,10 +78,7 @@ func encodeSignRequest(sr *models.SignRequest) ([]byte, error) {
 			if t.VersionedBeaconBlock.Deneb == nil {
 				return nil, errors.New("no deneb block contents")
 			}
-			if t.VersionedBeaconBlock.Deneb.Block == nil {
-				return nil, errors.New("no deneb block")
-			}
-			byts, err = t.VersionedBeaconBlock.Deneb.Block.MarshalSSZ()
+			byts, err = t.VersionedBeaconBlock.Deneb.MarshalSSZ()
 		default:
 			return nil, errors.Errorf("unsupported block version %d", t.VersionedBeaconBlock.Version)
 		}
@@ -213,7 +210,7 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 		}
 		sr.Object = &models.SignRequestAttestationData{AttestationData: data}
 	case "*models.SignRequestBlock":
-		data := &api.VersionedProposal{}
+		data := &spec.VersionedBeaconBlock{}
 
 		switch spec.DataVersion(toDecode.Version) {
 		case spec.DataVersionPhase0:
@@ -250,16 +247,14 @@ func decodeSignRequest(data []byte, sr *models.SignRequest) error {
 				return err
 			}
 			data.Version = spec.DataVersionDeneb
-			data.Deneb = &apiv1deneb.BlockContents{
-				Block: &blk,
-			}
+			data.Deneb = &blk
 		default:
 			return errors.Errorf("unsupported block version %d", toDecode.Version)
 		}
 
 		sr.Object = &models.SignRequestBlock{VersionedBeaconBlock: data}
 	case "*models.SignRequestBlindedBlock":
-		data := &api.VersionedBlindedProposal{}
+		data := &api.VersionedBlindedBeaconBlock{}
 
 		switch spec.DataVersion(toDecode.Version) {
 		case spec.DataVersionBellatrix:
