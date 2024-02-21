@@ -41,8 +41,6 @@ func referenceBlockByVersion(t *testing.T, version spec.DataVersion) *spec.Versi
 		t.Fatalf("Unsupported block version: %v", version)
 		return nil
 	}
-
-	return nil
 }
 
 func changeBlkParentRoot(t *testing.T, blk *spec.VersionedBeaconBlock, parentRoot [32]byte) {
