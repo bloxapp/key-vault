@@ -9,20 +9,20 @@ import (
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
-	"github.com/bloxapp/key-vault/utils/encoder"
-
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
 	"github.com/bloxapp/key-vault/keymanager/models"
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 // ProposalFarFutureSigning tests sign proposal endpoint with future signing.
 type ProposalFarFutureSigning struct {
+	BlockVersion spec.DataVersion
 }
 
 // Name returns the name of the test.
 func (test *ProposalFarFutureSigning) Name() string {
-	return "Test proposal far future signing"
+	return fmt.Sprintf("Test proposal far future signing: %s", test.BlockVersion.String())
 }
 
 // Run run the test.
@@ -35,8 +35,8 @@ func (test *ProposalFarFutureSigning) Run(t *testing.T) {
 	require.NotNil(t, account)
 	pubKeyBytes := account.ValidatorPublicKey()
 
-	blk := referenceBlock(t)
-	blk.Phase0.Slot = core.PraterNetwork.EstimatedCurrentSlot() + 200
+	blk := referenceBlockByVersion(t, test.BlockVersion)
+	changeBlkSlot(t, blk, core.PraterNetwork.EstimatedCurrentSlot()+200)
 	domain := _byteArray32("01000000f071c66c6561d0b939feb15f513a019d99a84bd85635221e3ad42dac")
 	req, err := test.serializedReq(pubKeyBytes, nil, domain, blk)
 	require.NoError(t, err)

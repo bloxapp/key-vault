@@ -193,6 +193,9 @@ func basicSignRequestBlock(blockVersion spec.DataVersion, isBlinded bool, differ
 			Capella: block,
 		}}
 	// tested against a real block and sig from the goerli testnet (slot 7415521)
+	// The data was taken from the Goerli testnet,
+	// specifically from a block signed by a validator whose keys we possess.
+	// You can reference the corresponding block through this link: https://prater.beaconcha.in/block/10389257.
 	case spec.DataVersionDeneb:
 		if !isBlinded {
 			block := &deneb.BeaconBlock{}

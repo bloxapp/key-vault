@@ -3,6 +3,7 @@ package tests
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -10,11 +11,10 @@ import (
 	"github.com/bloxapp/eth2-key-manager/core"
 	"github.com/stretchr/testify/require"
 
-	"github.com/bloxapp/key-vault/utils/encoder"
-
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
 	"github.com/bloxapp/key-vault/keymanager/models"
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 type slashingHistoryModel struct {
@@ -23,11 +23,12 @@ type slashingHistoryModel struct {
 
 // SlashingStorageRead tests slashing storage reading endpoint.
 type SlashingStorageRead struct {
+	BlockVersion spec.DataVersion
 }
 
 // Name returns the name of the test.
 func (test *SlashingStorageRead) Name() string {
-	return "Test slashing storage read"
+	return fmt.Sprintf("Test slashing storage read: %s", test.BlockVersion.String())
 }
 
 // Run run the test.
@@ -40,7 +41,7 @@ func (test *SlashingStorageRead) Run(t *testing.T) {
 	require.NotNil(t, account)
 	pubKey := account.ValidatorPublicKey()
 
-	blk := referenceBlock(t)
+	blk := referenceBlockByVersion(t, test.BlockVersion)
 	domain := _byteArray32("01000000f071c66c6561d0b939feb15f513a019d99a84bd85635221e3ad42dac")
 	req, err := test.serializedReq(pubKey, nil, domain, blk)
 	require.NoError(t, err)
