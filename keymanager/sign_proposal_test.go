@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sync"
 	"testing"
@@ -83,7 +82,6 @@ func TestSignProposal(t *testing.T) {
 	t.Run("successfully signed data", func(t *testing.T) {
 		runTest(t, http.StatusOK, expectedSig, func(km *keymanager.KeyManager) {
 			actualSignature, err := km.Sign(context.Background(), testRequest(t))
-			fmt.Println(hex.EncodeToString(actualSignature[:]))
 			require.NoError(t, err)
 			require.NotNil(t, actualSignature)
 			require.EqualValues(t, expectedSig, actualSignature[:])
@@ -139,7 +137,8 @@ func testRequest(t *testing.T) *models.SignRequest {
 		SigningRoot:     nil,
 		SignatureDomain: _byteArray32("0000000081509579e35e84020ad8751eca180b44df470332d3ad17fc6fd52459"),
 		Object: &models.SignRequestBlock{VersionedBeaconBlock: &spec.VersionedBeaconBlock{
-			Phase0: blk,
+			Phase0:  blk,
+			Version: spec.DataVersionPhase0,
 		}},
 	}
 }

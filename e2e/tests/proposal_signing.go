@@ -2,6 +2,7 @@ package tests
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/attestantio/go-eth2-client/spec"
@@ -10,20 +11,20 @@ import (
 	slashingprotection "github.com/bloxapp/eth2-key-manager/slashing_protection"
 	"github.com/stretchr/testify/require"
 
-	"github.com/bloxapp/key-vault/utils/encoder"
-
 	"github.com/bloxapp/key-vault/e2e"
 	"github.com/bloxapp/key-vault/e2e/shared"
 	"github.com/bloxapp/key-vault/keymanager/models"
+	"github.com/bloxapp/key-vault/utils/encoder"
 )
 
 // ProposalSigning tests sign proposal endpoint.
 type ProposalSigning struct {
+	BlockVersion spec.DataVersion
 }
 
 // Name returns the name of the test.
 func (test *ProposalSigning) Name() string {
-	return "Test proposal signing"
+	return fmt.Sprintf("Test proposal signing: %s", test.BlockVersion.String())
 }
 
 // Run run the test.
@@ -40,7 +41,7 @@ func (test *ProposalSigning) Run(t *testing.T) {
 	wallet, err := storage.OpenWallet()
 	require.NoError(t, err)
 
-	blk := referenceBlock(t)
+	blk := referenceBlockByVersion(t, test.BlockVersion)
 	domain := _byteArray32("01000000f071c66c6561d0b939feb15f513a019d99a84bd85635221e3ad42dac")
 	req, err := test.serializedReq(pubKeyBytes, nil, domain, blk)
 	require.NoError(t, err)
